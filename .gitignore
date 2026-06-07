@@ -1,0 +1,13 @@
+node_modules/
+.DS_Store
+.env
+.env.local
+.env.*.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+coverage/
+client/.next/
+*.log
+server/local-mongo-data/
+server/local-mongo-log/
