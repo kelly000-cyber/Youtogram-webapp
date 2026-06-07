@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Youtogram 🚀
 
 A full-featured video-first social media platform built with modern web technologies.
@@ -370,3 +371,7 @@ Future features in development:
 - Do not deploy the local MongoDB files in `server/local-mongo-data`; they are ignored for future deploys.
 - For real traffic, use Railway's MongoDB service or MongoDB Atlas instead of the local XAMPP MongoDB database.
 - Keep `JWT_SECRET` the same across backend redeploys so existing logins stay valid.
+=======
+# Youtogram-webapp
+social media web application
+>>>>>>> 4dfcafd04cf691bc207ad6d8233055472180746b

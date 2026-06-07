@@ -2,13 +2,20 @@ const postService = require('../services/postService');
 
 exports.createPost = async (req, res, next) => {
   try {
-    const post = await postService.createPost(req.user.id, req.body);
+    const media = req.files ? req.files.map(file => ({
+      url: file.path,
+      mimeType: file.mimetype,
+      fileName: file.originalname,
+      sizeBytes: file.size,
+    })) : [];
+
+    const postData = { ...req.body, media };
+    const post = await postService.createPost(req.user.id, postData);
     res.status(201).json({ status: 'success', data: post });
   } catch (error) {
     next(error);
   }
 };
-
 exports.getFeed = async (req, res, next) => {
   try {
     const feed = await postService.getFeed(req.user.id, req.query);
