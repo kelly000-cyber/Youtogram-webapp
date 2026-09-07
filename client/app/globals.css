@@ -819,22 +819,65 @@ body.light-theme {
 
 @media (max-width: 560px) {
   .authPage {
-    padding: 0;
+    min-height: 100svh;
+    display: block;
+    padding: 0.75rem;
   }
 
   .authPanel {
-    min-height: 100vh;
-    border-radius: 0;
-    border: 0;
+    width: 100%;
+    min-height: 0;
+    border-radius: 22px;
+  }
+
+  .authBrandPane {
+    min-height: 270px;
+    padding: 2.25rem 1.25rem 2rem;
+    text-align: center;
+  }
+
+  .authBrandPane::before {
+    inset: 12px;
+    border-radius: 18px;
   }
 
   .brandHeader {
     grid-template-columns: 1fr;
+    justify-items: center;
+    gap: 0.9rem;
   }
 
   .brandIconLarge {
     width: 72px;
     height: 72px;
+    border-radius: 22px;
+  }
+
+  .brandHeader h1 {
+    font-size: clamp(2.25rem, 11vw, 3.25rem);
+    line-height: 1;
+  }
+
+  .brandHeader p {
+    max-width: 18rem;
+    margin-top: 0.65rem;
+    font-size: 0.98rem;
+    line-height: 1.45;
+  }
+
+  .authCard {
+    gap: 1.05rem;
+    padding: 1.35rem 1rem 1.5rem;
+  }
+
+  .authCardHeader h2 {
+    font-size: clamp(1.7rem, 8vw, 2.2rem);
+  }
+
+  .authToggle button {
+    min-height: 48px;
+    padding: 0.65rem 0.4rem;
+    font-size: 0.9rem;
   }
 }
 
