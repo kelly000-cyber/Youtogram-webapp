@@ -42,8 +42,7 @@ const getAllowedOrigins = () => {
   }))];
 };
 
-// Basic security middleware
-app.use(cors({ origin: getAllowedOrigins() }));
+app.use(cors({ origin: true }));
 app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(helmet());
