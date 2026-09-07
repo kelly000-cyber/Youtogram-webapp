@@ -1,0 +1,11 @@
+{
+  "/games/page": "app/games/page.js",
+  "/friends/page": "app/friends/page.js",
+  "/page": "app/page.js",
+  "/videos/page": "app/videos/page.js",
+  "/profile/page": "app/profile/page.js",
+  "/live/page": "app/live/page.js",
+  "/groups/page": "app/groups/page.js",
+  "/feed/page": "app/feed/page.js",
+  "/messages/page": "app/messages/page.js"
+}
