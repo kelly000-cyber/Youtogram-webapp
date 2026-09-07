@@ -22,10 +22,24 @@ const app = express();
 const getAllowedOrigins = () => {
   if (!process.env.FRONTEND_URL) return '*';
 
-  return process.env.FRONTEND_URL
+  const origins = process.env.FRONTEND_URL
     .split(',')
     .map((origin) => origin.trim())
     .filter(Boolean);
+
+  return [...new Set(origins.flatMap((origin) => {
+    try {
+      const url = new URL(origin);
+      const alternateHost = url.hostname.startsWith('www.')
+        ? url.hostname.slice(4)
+        : `www.${url.hostname}`;
+      const alternate = new URL(url.toString());
+      alternate.hostname = alternateHost;
+      return [origin, alternate.origin];
+    } catch (error) {
+      return [origin];
+    }
+  }))];
 };
 
 // Basic security middleware
