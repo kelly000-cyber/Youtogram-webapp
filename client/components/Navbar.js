@@ -139,7 +139,7 @@ export default function Navbar() {
             }
           }}
         >
-          <img src="/youtogram-logo.jpg" alt="Youtogram logo" className="brandIcon" />
+          <img src="/youtogram.jpg" alt="Youtogram logo" className="brandIcon" />
         </Link>
         <form className="topbarSearch" onSubmit={(event) => {
           event.preventDefault();

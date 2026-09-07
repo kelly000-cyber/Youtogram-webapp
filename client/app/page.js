@@ -120,7 +120,7 @@ export default function HomePage() {
       <section className="authPanel">
         <div className="authBrandPane">
           <div className="brandHeader">
-            <img src="/youtogram-logo.jpg" alt="Youtogram logo" className="brandIconLarge" />
+            <img src="/youtogram.jpg" alt="Youtogram logo" className="brandIconLarge" />
             <div>
               <h1>Youtogram</h1>
               <p className="brandTagline">Connect.Share.Earn</p>

@@ -6,7 +6,7 @@ export const metadata = {
   title: 'Youtogram',
   description: 'Video-first social media platform',
   icons: {
-    icon: '/youtogram-logo.jpg'
+    icon: '/youtogram.jpg'
   }
 };
 

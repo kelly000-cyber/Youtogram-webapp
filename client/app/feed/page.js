@@ -246,7 +246,7 @@ export default function FeedPage() {
         <aside className="facebookLeftRail">
           <section className="facebookPanel facebookProfileCard">
             <div className="facebookProfileMini">
-              <img src={profile?.avatar || '/youtogram-logo.jpg'} alt={profile?.username || 'Profile'} />
+              <img src={profile?.avatar || '/youtogram.jpg'} alt={profile?.username || 'Profile'} />
               <div>
                 <strong>{profile?.username || 'Youtogram'}</strong>
                 <span>{profile?.country || 'Social feed'}</span>
@@ -308,7 +308,7 @@ export default function FeedPage() {
                         <img src={story.media[0].url} alt={story.author?.username || 'Story'} />
                       )
                     ) : (
-                      <img src={story.author?.avatar || '/youtogram-logo.jpg'} alt={story.author?.username || 'Story'} />
+                      <img src={story.author?.avatar || '/youtogram.jpg'} alt={story.author?.username || 'Story'} />
                     )}
                     <span>{story.author?.username || 'Story'}</span>
                   </button>
@@ -324,7 +324,7 @@ export default function FeedPage() {
           <section className="facebookComposerCard facebookPanel">
             <form onSubmit={handleCreatePost} className="facebookComposerForm">
               <div className="facebookComposerTop">
-                <img src={profile?.avatar || '/youtogram-logo.jpg'} alt={profile?.username || 'Profile'} className="facebookComposerAvatar" />
+                <img src={profile?.avatar || '/youtogram.jpg'} alt={profile?.username || 'Profile'} className="facebookComposerAvatar" />
                 <textarea
                   name="text"
                   value={composer.text}
@@ -409,7 +409,7 @@ export default function FeedPage() {
               {(profile?.friends || []).slice(0, 8).map((friend) => (
                 <button key={friend._id} type="button" className="facebookContactRow">
                   <span className="facebookContactAvatarWrap">
-                    <img src={friend.avatar || '/youtogram-logo.jpg'} alt={friend.username} />
+                    <img src={friend.avatar || '/youtogram.jpg'} alt={friend.username} />
                     <span className="facebookContactDot" />
                   </span>
                   <span>{friend.username}</span>
@@ -440,7 +440,7 @@ export default function FeedPage() {
           <article className="storyViewerCard facebookStoryViewerCard">
             <header className="storyViewerHeader">
               <div className="reelAuthorRow">
-                <img src={activeStory.author?.avatar || '/youtogram-logo.jpg'} alt={activeStory.author?.username || 'Story'} className="reelAvatar" />
+                <img src={activeStory.author?.avatar || '/youtogram.jpg'} alt={activeStory.author?.username || 'Story'} className="reelAvatar" />
                 <div className="reelAuthorText">
                   <strong>{activeStory.author?.username || 'Youtogram user'}</strong>
                   <span>Story</span>
