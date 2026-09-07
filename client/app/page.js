@@ -123,7 +123,7 @@ export default function HomePage() {
             <img src="/youtogram.jpg" alt="Youtogram logo" className="brandIconLarge" />
             <div>
               <h1>Youtogram</h1>
-              <p className="brandTagline">Connect.Share.Earn</p>
+              <p className="brandTagline">PEOPLE . CULTURE . OPPORTUNITY</p>
             </div>
           </div>
 
