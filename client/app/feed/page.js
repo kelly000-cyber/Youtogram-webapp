@@ -22,6 +22,8 @@ const composerDefaults = {
   isStory: false
 };
 
+const captionLimit = 280;
+
 export default function FeedPage() {
   const router = useRouter();
 
@@ -164,7 +166,14 @@ export default function FeedPage() {
     const { name, value, type, checked } = event.target;
     setComposer((current) => ({
       ...current,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: type === 'checkbox' ? checked : name === 'text' ? value.slice(0, captionLimit) : value
+    }));
+  };
+
+  const addCaptionEmoji = (emoji) => {
+    setComposer((current) => ({
+      ...current,
+      text: `${current.text}${emoji}`.slice(0, captionLimit)
     }));
   };
 
@@ -412,13 +421,26 @@ export default function FeedPage() {
             <form onSubmit={handleCreatePost} className="facebookComposerForm">
               <div className="facebookComposerTop">
                 <img src={profile?.avatar || '/youtogram.jpg'} alt={profile?.username || 'Profile'} className="facebookComposerAvatar" />
-                <textarea
-                  name="text"
-                  value={composer.text}
-                  onChange={handleComposerChange}
-                  placeholder={`What's on your mind${profile?.username ? `, ${profile.username}` : ''}?`}
-                  rows={3}
-                />
+                <div className="facebookCaptionField">
+                  <label htmlFor="post-caption">Caption</label>
+                  <textarea
+                    id="post-caption"
+                    name="text"
+                    value={composer.text}
+                    onChange={handleComposerChange}
+                    placeholder={`Add a caption${profile?.username ? `, ${profile.username}` : ''}...`}
+                    maxLength={captionLimit}
+                    rows={3}
+                  />
+                  <div className="facebookCaptionTools">
+                    <div className="facebookEmojiChoices" aria-label="Add emoji to caption">
+                      {['✨', '😂', '❤️', '🔥', '🙌'].map((emoji) => (
+                        <button key={emoji} type="button" onClick={() => addCaptionEmoji(emoji)} aria-label={`Add ${emoji}`}>{emoji}</button>
+                      ))}
+                    </div>
+                    <span>{composer.text.length}/{captionLimit}</span>
+                  </div>
+                </div>
               </div>
               <div className="facebookComposerQuickActions">
                 <button type="button" className={`facebookComposerQuickAction ${composer.mediaType === 'video' && !composer.isStory ? 'facebookComposerQuickActionActive' : ''}`} onClick={() => handleComposerAction('live')}>
@@ -454,6 +476,7 @@ export default function FeedPage() {
                   ) : (
                     <img src={composer.mediaPreview} alt="Selected upload preview" />
                   )}
+                  {composer.text ? <span className="facebookComposerCaptionOverlay">{composer.text}</span> : null}
                 </div>
               ) : null}
             </form>
