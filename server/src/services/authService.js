@@ -22,8 +22,16 @@ const createToken = (user) => {
 };
 
 exports.register = async ({ username, email, phone, phoneCountryCode = '', password, country = '' }) => {
+  const cleanUsername = String(username || '').trim();
+  const cleanEmail = String(email || '').trim().toLowerCase();
   const cleanPhone = normalizePhone(phone);
   const expectedDialCode = getDialCode(country);
+
+  if (!cleanUsername || !cleanEmail) {
+    const error = new Error('Username and email are required');
+    error.status = 400;
+    throw error;
+  }
 
   if (!expectedDialCode || expectedDialCode !== phoneCountryCode || !cleanPhone.startsWith(normalizePhone(expectedDialCode))) {
     const error = new Error('Mobile number must match the selected country');
@@ -31,9 +39,16 @@ exports.register = async ({ username, email, phone, phoneCountryCode = '', passw
     throw error;
   }
 
-  const existing = await User.findOne({ $or: [{ email }, { phone: cleanPhone }] });
+  const existing = await User.findOne({
+    $or: [{ username: cleanUsername }, { email: cleanEmail }, { phone: cleanPhone }]
+  });
   if (existing) {
-    const error = new Error(existing.email === email ? 'Email is already registered' : 'Mobile number is already registered');
+    const message = existing.username === cleanUsername
+      ? 'Username is already taken'
+      : existing.email === cleanEmail
+        ? 'Email is already registered'
+        : 'Mobile number is already registered';
+    const error = new Error(message);
     error.status = 400;
     throw error;
   }
@@ -41,7 +56,7 @@ exports.register = async ({ username, email, phone, phoneCountryCode = '', passw
   validateStrongPassword(password);
 
   const hashed = await bcrypt.hash(password, 12);
-  const user = await User.create({ username, email, phone: cleanPhone, phoneCountryCode: expectedDialCode, password: hashed, country });
+  const user = await User.create({ username: cleanUsername, email: cleanEmail, phone: cleanPhone, phoneCountryCode: expectedDialCode, password: hashed, country });
   return { id: user._id, username: user.username, email: user.email, phone: user.phone, phoneCountryCode: user.phoneCountryCode, country: user.country };
 };
 
