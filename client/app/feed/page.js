@@ -36,6 +36,9 @@ export default function FeedPage() {
   const [activeStory, setActiveStory] = useState(null);
   const [highlightedPostId, setHighlightedPostId] = useState('');
   const [sharedPostId, setSharedPostId] = useState('');
+  const [sharePostId, setSharePostId] = useState('');
+  const [shareNote, setShareNote] = useState('');
+  const [shareComment, setShareComment] = useState('');
   const [composer, setComposer] = useState(composerDefaults);
   const mediaInputRef = useRef(null);
 
@@ -254,7 +257,57 @@ export default function FeedPage() {
     }
   };
 
-  const handleShare = async (postId) => {
+  const handleShare = (postId) => {
+    setSharePostId(postId);
+    setShareNote('');
+    setShareComment('');
+  };
+
+  const getShareUrl = (postId) => `${window.location.origin}/feed?post=${postId}`;
+
+  const handleShareAction = async (destination) => {
+    const shareUrl = getShareUrl(sharePostId);
+
+    if (destination === 'messenger') {
+      setSharePostId('');
+      router.push('/messages');
+      return;
+    }
+
+    if (destination === 'whatsapp') {
+      window.open(`https://wa.me/?text=${encodeURIComponent(shareComment ? `${shareComment} ${shareUrl}` : shareUrl)}`, '_blank', 'noopener,noreferrer');
+      return;
+    }
+
+    if (destination === 'story') {
+      setSharePostId('');
+      setComposer((current) => ({ ...current, isStory: true, text: shareComment || current.text }));
+      setShareNote('Story mode is ready. Choose media and share it from the composer.');
+      return;
+    }
+
+    try {
+      if (destination === 'native' && navigator.share) {
+        await navigator.share({ title: 'Youtogram post', text: shareComment, url: shareUrl });
+      } else {
+        await navigator.clipboard.writeText(shareUrl);
+      }
+      setShareNote(destination === 'native' ? 'Share sheet opened.' : 'Link copied to clipboard.');
+    } catch {
+      setShareNote('Sharing was cancelled.');
+    }
+  };
+
+  const handleShareNow = async () => {
+    if (shareComment.trim()) {
+      setShareNote('Your message is ready to share.');
+    }
+    await handleShareAction('native');
+  };
+
+  const sharedPost = posts.find((post) => post._id === sharePostId);
+
+  const handleLegacyShare = async (postId) => {
     const shareUrl = `${window.location.origin}/feed?post=${postId}`;
 
     try {
@@ -492,6 +545,37 @@ export default function FeedPage() {
 
             {activeStory.text ? <p className="storyViewerCaption">{activeStory.text}</p> : null}
           </article>
+        </div>
+      ) : null}
+
+      {sharedPost ? (
+        <div className="shareModalOverlay" role="dialog" aria-modal="true" aria-labelledby="share-post-title">
+          <section className="shareModal">
+            <header className="shareModalHeader">
+              <h2 id="share-post-title">Share</h2>
+              <button type="button" className="shareModalClose" onClick={() => setSharePostId('')} aria-label="Close share dialog">×</button>
+            </header>
+            <div className="shareModalBody">
+              <p className="sharePrivacyNotice">Links you share are unique to you and may be used to improve suggestions and ads that you see. <strong>Learn more</strong></p>
+              <div className="shareProfileRow">
+                <img src={profile?.avatar || '/youtogram.jpg'} alt={profile?.username || 'Profile'} />
+                <div><strong>{profile?.username || 'Youtogram User'}</strong><span>Feed · Friends</span></div>
+              </div>
+              <textarea value={shareComment} onChange={(event) => setShareComment(event.target.value)} placeholder="Say something about this..." aria-label="Say something about this" />
+              <button type="button" className="shareNowButton" onClick={handleShareNow}>Share now</button>
+              {shareNote ? <p className="shareModalNote">{shareNote}</p> : null}
+            </div>
+            <div className="shareDestinations">
+              <h3>Share to</h3>
+              <div className="shareDestinationGrid">
+                <button type="button" onClick={() => handleShareAction('messenger')}><span>↗</span><strong>Messenger</strong></button>
+                <button type="button" onClick={() => handleShareAction('whatsapp')}><span>◔</span><strong>WhatsApp</strong></button>
+                <button type="button" onClick={() => handleShareAction('story')}><span>▣</span><strong>Your story</strong></button>
+                <button type="button" onClick={() => handleShareAction('copy')}><span>↗</span><strong>Copy link</strong></button>
+                <button type="button" onClick={() => { setSharePostId(''); router.push('/friends'); }}><span>●</span><strong>Friend&apos;s profile</strong></button>
+              </div>
+            </div>
+          </section>
         </div>
       ) : null}
     </main>

@@ -5316,6 +5316,173 @@ body.facebook-home .activeTopbarNav::after {
   object-fit: cover;
 }
 
+.shareModalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(3px);
+}
+
+.shareModal {
+  width: min(710px, 100%);
+  overflow: hidden;
+  border: 1px solid #dfe3ee;
+  border-radius: 18px;
+  background: #ffffff;
+  color: #050505;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.24);
+}
+
+.shareModalHeader,
+.shareModalBody,
+.shareDestinations {
+  padding: 1.15rem 1.35rem;
+}
+
+.shareModalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid #dfe3ee;
+}
+
+.shareModalHeader h2,
+.shareDestinations h3 {
+  margin: 0;
+}
+
+.shareModalClose {
+  position: absolute;
+  margin-left: min(620px, 82%);
+  width: 42px;
+  height: 42px;
+  border: 0;
+  border-radius: 50%;
+  background: #e4e6eb;
+  color: #050505;
+  font-size: 1.8rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.sharePrivacyNotice {
+  margin: 0 0 1rem;
+  padding: 0.85rem 1rem;
+  border-radius: 14px;
+  background: #f0f2f5;
+  line-height: 1.4;
+}
+
+.sharePrivacyNotice strong {
+  color: #1877f2;
+}
+
+.shareProfileRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.shareProfileRow img {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.shareProfileRow strong,
+.shareProfileRow span {
+  display: block;
+}
+
+.shareProfileRow span {
+  margin-top: 0.2rem;
+  color: #65676b;
+  font-size: 0.85rem;
+}
+
+.shareModalBody textarea {
+  width: 100%;
+  min-height: 90px;
+  margin: 1rem 0;
+  padding: 0.8rem 0;
+  border: 0;
+  resize: vertical;
+  color: #050505;
+  font: inherit;
+  outline: none;
+}
+
+.shareNowButton {
+  width: 100%;
+  min-height: 48px;
+  border: 0;
+  border-radius: 9px;
+  background: #1877f2;
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.shareModalNote {
+  margin: 0.7rem 0 0;
+  color: #1877f2;
+  text-align: center;
+}
+
+.shareDestinations {
+  border-top: 1px solid #dfe3ee;
+}
+
+.shareDestinationGrid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.8rem;
+  margin-top: 1rem;
+}
+
+.shareDestinationGrid button {
+  display: grid;
+  justify-items: center;
+  gap: 0.5rem;
+  border: 0;
+  background: transparent;
+  color: #050505;
+  cursor: pointer;
+  text-align: center;
+}
+
+.shareDestinationGrid button span {
+  display: grid;
+  width: 64px;
+  height: 64px;
+  place-items: center;
+  border-radius: 50%;
+  background: #e4e6eb;
+  font-size: 1.7rem;
+}
+
+.shareDestinationGrid button:hover span {
+  background: #d8dadf;
+}
+
+@media (max-width: 640px) {
+  .shareModalHeader,
+  .shareModalBody,
+  .shareDestinations {
+    padding: 1rem;
+  }
+
+  .shareDestinationGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
 .facebookFeedStack {
   display: grid;
   gap: 16px;
