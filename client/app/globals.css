@@ -5986,6 +5986,53 @@ body.facebook-home.light-theme .facebookContactDot {
   padding: 1.5rem;
 }
 
+.authPage {
+  min-height: 100dvh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  align-items: start;
+}
+
+.authPanel {
+  max-height: none;
+}
+
+.termsModalOverlay {
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.termsModal {
+  display: flex;
+  flex-direction: column;
+  max-height: min(90dvh, 760px);
+  overflow: hidden;
+}
+
+.termsModalContent {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 0.5rem;
+  scrollbar-gutter: stable;
+}
+
+@media (max-width: 640px) {
+  .authPage {
+    padding: 0.75rem;
+  }
+
+  .termsModalOverlay {
+    padding: 0.75rem;
+  }
+
+  .termsModal {
+    max-height: calc(100dvh - 1.5rem);
+    padding: 1rem;
+    border-radius: 16px;
+  }
+}
+
 .searchPageShell {
   width: min(1040px, 100%);
   margin: 0 auto;
