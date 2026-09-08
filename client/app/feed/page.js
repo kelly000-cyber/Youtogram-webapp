@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import PostCard from '../../components/PostCard';
 import { authService } from '../../services/auth';
@@ -37,6 +37,7 @@ export default function FeedPage() {
   const [highlightedPostId, setHighlightedPostId] = useState('');
   const [sharedPostId, setSharedPostId] = useState('');
   const [composer, setComposer] = useState(composerDefaults);
+  const mediaInputRef = useRef(null);
 
   const handleComposerAction = (action) => {
     setComposer((current) => {
@@ -189,6 +190,11 @@ export default function FeedPage() {
     }));
   };
 
+  const handleCreateStory = () => {
+    setComposer((current) => ({ ...current, isStory: true }));
+    window.requestAnimationFrame(() => mediaInputRef.current?.click());
+  };
+
   const handleCreatePost = async (event) => {
     event.preventDefault();
     setError('');
@@ -196,6 +202,11 @@ export default function FeedPage() {
     try {
       if (!composer.text.trim() && !composer.mediaFile) {
         setError('Add some text or choose a photo/video before posting.');
+        return;
+      }
+
+      if (composer.isStory && !composer.mediaFile) {
+        setError('Choose a photo or video before sharing your story.');
         return;
       }
 
@@ -318,7 +329,7 @@ export default function FeedPage() {
               <strong>Stories</strong>
             </div>
             <div className="facebookStoriesRow">
-              <button type="button" className="facebookStoryCard facebookStoryCreateCard" onClick={() => handleComposerAction('story')}>
+              <button type="button" className="facebookStoryCard facebookStoryCreateCard" onClick={handleCreateStory}>
                 <span>+ Create story</span>
               </button>
               {stories.length ? (
@@ -331,7 +342,7 @@ export default function FeedPage() {
                         <img src={story.media[0].url} alt={story.author?.username || 'Story'} />
                       )
                     ) : (
-                      <img src={story.author?.avatar || '/youtogram.jpg'} alt={story.author?.username || 'Story'} />
+                      <span className="facebookStoryTextPreview">{story.text || 'Story'}</span>
                     )}
                     <span>{story.author?.username || 'Story'}</span>
                   </button>
@@ -373,7 +384,7 @@ export default function FeedPage() {
               <div className="facebookComposerActions">
                 <label className="facebookMediaPicker">
                   <span>{composer.mediaFile ? `Selected: ${composer.mediaFile.name}` : 'Choose photo or video'}</span>
-                  <input type="file" accept="image/*,video/*" onChange={handleMediaChange} aria-label="Choose photo or video" />
+                  <input ref={mediaInputRef} type="file" accept="image/*,video/*" onChange={handleMediaChange} aria-label="Choose photo or video" />
                 </label>
                 <label className="facebookStoryToggle">
                   <input type="checkbox" name="isStory" checked={composer.isStory} onChange={handleComposerChange} />
