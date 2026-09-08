@@ -5686,6 +5686,18 @@ body.facebook-home .activeTopbarNav::after {
 }
 
 .facebookActionButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+.likeActionIcon {
+  width: 18px;
+  height: 18px;
+}
+
+.facebookActionButton {
   min-height: 40px;
   border: 0;
   border-radius: 6px;

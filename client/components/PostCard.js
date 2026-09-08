@@ -86,7 +86,8 @@ export default function PostCard({ post, currentUserId, onToggleLike, onAddComme
 
       <aside className="facebookPostActions">
         <button type="button" className={`facebookActionButton ${likedByCurrentUser ? 'facebookActionButtonActive' : ''}`} onClick={() => onToggleLike?.(post._id)}>
-          Like
+          <svg viewBox="0 0 24 24" aria-hidden="true" className="likeActionIcon"><path d="M7 10v10H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2h3Zm0 10h9.4a2 2 0 0 0 1.9-1.4l2.1-6.5A2 2 0 0 0 18.5 9H14l.7-3.4A2.2 2.2 0 0 0 12.5 3L7 10v10Z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" /></svg>
+          <span>Like</span>
         </button>
         <button type="button" className="facebookActionButton" onClick={() => document.getElementById(`comment-${post._id}`)?.focus()}>
           Comment

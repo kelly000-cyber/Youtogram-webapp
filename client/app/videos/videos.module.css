@@ -127,6 +127,16 @@
   backdrop-filter: blur(12px);
 }
 
+.likeButton {
+  display: grid;
+  place-items: center;
+}
+
+.likeButton svg {
+  width: 24px;
+  height: 24px;
+}
+
 .sidebar {
   position: sticky;
   top: 90px;

@@ -161,7 +161,9 @@ export default function VideosPage() {
                   {video.description ? <p>{video.description}</p> : null}
                 </div>
                 <aside className={styles.actions}>
-                  <button type="button" onClick={() => handleLike(video._id)} title="Like" aria-label="Like video">Like</button>
+                  <button type="button" className={styles.likeButton} onClick={() => handleLike(video._id)} title="Like" aria-label="Like video">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10v10H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2h3Zm0 10h9.4a2 2 0 0 0 1.9-1.4l2.1-6.5A2 2 0 0 0 18.5 9H14l.7-3.4A2.2 2.2 0 0 0 12.5 3L7 10v10Z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" /></svg>
+                  </button>
                   <span>{formatCount(video.likes?.length || 0)}</span>
                   <button type="button" onClick={() => setError('Comments are available on the video post.')} title="Comments" aria-label="Comments">Chat</button>
                   <span>{formatCount(video.comments?.length || 0)}</span>
