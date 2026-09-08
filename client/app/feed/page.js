@@ -422,7 +422,6 @@ export default function FeedPage() {
               <div className="facebookComposerTop">
                 <img src={profile?.avatar || '/youtogram.jpg'} alt={profile?.username || 'Profile'} className="facebookComposerAvatar" />
                 <div className="facebookCaptionField">
-                  <label htmlFor="post-caption">Caption</label>
                   <textarea
                     id="post-caption"
                     name="text"
