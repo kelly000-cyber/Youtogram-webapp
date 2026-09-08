@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { authService } from '../services/auth';
@@ -115,6 +115,8 @@ export default function Navbar() {
   const router = useRouter();
   const [profile, setProfile] = useState(null);
   const [query, setQuery] = useState('');
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const profileMenuRef = useRef(null);
 
   useEffect(() => {
     const token = localStorage.getItem('youtogram_token');
@@ -124,6 +126,21 @@ export default function Navbar() {
       localStorage.removeItem('youtogram_token');
     });
   }, []);
+
+  useEffect(() => {
+    const handleOutsideClick = (event) => {
+      if (!profileMenuRef.current?.contains(event.target)) setProfileMenuOpen(false);
+    };
+
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => document.removeEventListener('mousedown', handleOutsideClick);
+  }, []);
+
+  const handleLogout = () => {
+    authService.logout();
+    setProfileMenuOpen(false);
+    router.replace('/');
+  };
 
   return (
     <nav className="navbar appTopbar">
@@ -185,16 +202,32 @@ export default function Navbar() {
           </button>
         ))}
 
-        <button type="button" className="topbarProfileChip" onClick={() => router.push('/profile')} aria-label="Profile" title="Profile">
-          <span className="topbarProfileAvatar">
-            {profile?.avatar ? <img src={profile.avatar} alt="Profile avatar" className="topbarProfileAvatarImage" /> : getInitials(profile?.username || 'YT')}
-          </span>
-          <span className="topbarProfileDropdownIcon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" className="navSvgIcon">
-              <path d="M7 10l5 5 5-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-            </svg>
-          </span>
-        </button>
+        <div className="topbarProfileWrapper" ref={profileMenuRef}>
+          <button type="button" className="topbarProfileChip" onClick={() => setProfileMenuOpen((open) => !open)} aria-expanded={profileMenuOpen} aria-label="Account menu" title="Account menu">
+            <span className="topbarProfileAvatar">
+              {profile?.avatar ? <img src={profile.avatar} alt="Profile avatar" className="topbarProfileAvatarImage" /> : getInitials(profile?.username || 'YT')}
+            </span>
+            <span className="topbarProfileDropdownIcon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" className="navSvgIcon">
+                <path d="M7 10l5 5 5-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              </svg>
+            </span>
+          </button>
+
+          <div className={`topbarProfileMenu ${profileMenuOpen ? 'open' : ''}`} role="menu">
+            <button type="button" className="topbarProfileMenuUser" onClick={() => { setProfileMenuOpen(false); router.push('/profile'); }}>
+              <span className="topbarProfileAvatar topbarProfileAvatarMenu">
+                {profile?.avatar ? <img src={profile.avatar} alt="Profile avatar" className="topbarProfileAvatarImage" /> : getInitials(profile?.username || 'YT')}
+              </span>
+              <span><strong>{profile?.username || 'Your profile'}</strong><small>See your profile</small></span>
+            </button>
+            <div className="topbarProfileMenuList">
+              <button type="button" className="topbarProfileMenuItem" onClick={() => { setProfileMenuOpen(false); router.push('/profile'); }}>Settings & privacy</button>
+              <button type="button" className="topbarProfileMenuItem" onClick={() => { setProfileMenuOpen(false); router.push('/messages'); }}>Help & support</button>
+              <button type="button" className="topbarProfileMenuItem" onClick={handleLogout}>Log out</button>
+            </div>
+          </div>
+        </div>
       </div>
     </nav>
   );

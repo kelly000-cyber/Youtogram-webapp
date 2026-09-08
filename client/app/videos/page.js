@@ -57,16 +57,25 @@ export default function VideosPage() {
     }
   };
 
+  const handleShare = async (videoId) => {
+    const shareUrl = `${window.location.origin}/videos?video=${videoId}`;
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setError('Video link copied.');
+      window.setTimeout(() => setError(''), 1800);
+    } catch {
+      setError('Unable to copy video link.');
+    }
+  };
+
   return (
     <main className={styles.page}>
-      <section className={styles.hero}>
-        <div>
-          <p className={styles.kicker}>Videos</p>
-          <h1>Short-form reel feed</h1>
-          <p className={styles.copy}>This layout is built to feel closer to TikTok: tall cards, strong media focus, and quick action buttons.</p>
-        </div>
-        <button type="button" className={styles.primaryButton} onClick={() => router.push('/feed')}>Back to feed</button>
-      </section>
+      <aside className={styles.sidebar}>
+        <h1>Reels</h1>
+        <button type="button" className={styles.sidebarItemActive}>For you</button>
+        <button type="button" className={styles.sidebarItem} onClick={() => router.push('/feed')}>Following</button>
+        <button type="button" className={styles.sidebarItem} onClick={() => router.push('/profile')}>Profile</button>
+      </aside>
 
       {error ? (
         authExpired ? (
@@ -99,11 +108,11 @@ export default function VideosPage() {
                   {video.description ? <p>{video.description}</p> : null}
                 </div>
                 <aside className={styles.actions}>
-                  <button type="button" onClick={() => handleLike(video._id)} title="Like">Like</button>
+                  <button type="button" onClick={() => handleLike(video._id)} title="Like" aria-label="Like video">Like</button>
                   <span>{formatCount(video.likes?.length || 0)}</span>
-                  <button type="button" title="Comments">Chat</button>
+                  <button type="button" onClick={() => setError('Comments are available on the video post.')} title="Comments" aria-label="Comments">Chat</button>
                   <span>{formatCount(video.comments?.length || 0)}</span>
-                  <button type="button" title="Share">Share</button>
+                  <button type="button" onClick={() => handleShare(video._id)} title="Share" aria-label="Share video">Share</button>
                 </aside>
               </div>
             </article>

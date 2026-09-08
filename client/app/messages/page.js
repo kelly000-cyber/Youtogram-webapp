@@ -143,7 +143,6 @@ export default function MessagesPage() {
         ...current,
         [message.chatId]: [...(current[message.chatId] || []), message]
       }));
-      socket?.emit('message', message);
       setDraft('');
     } catch (sendError) {
       setError(sendError.message || 'Unable to send message.');

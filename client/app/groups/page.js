@@ -6,9 +6,9 @@ import { authService } from '../../services/auth';
 import { postService } from '../../services/posts';
 
 const sidebarItems = [
-  { label: 'Your feed', active: true },
-  { label: 'Discover' },
-  { label: 'Your groups' }
+  { label: 'Your feed', route: '/groups' },
+  { label: 'Discover', route: '/search?q=groups' },
+  { label: 'Your groups', route: '/groups' }
 ];
 
 const joinedGroups = [
@@ -32,6 +32,8 @@ export default function GroupsPage() {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [activeSection, setActiveSection] = useState('Your feed');
+  const [search, setSearch] = useState('');
 
   useEffect(() => {
     const token = localStorage.getItem('youtogram_token');
@@ -63,19 +65,19 @@ export default function GroupsPage() {
         </div>
 
         <div className="groupsSearchBox">
-          <input type="text" placeholder="Search groups" aria-label="Search groups" />
+          <input type="text" placeholder="Search groups" aria-label="Search groups" value={search} onChange={(event) => setSearch(event.target.value)} />
         </div>
 
         <nav className="groupsSidebarNav">
           {sidebarItems.map((item) => (
-            <button key={item.label} type="button" className={`groupsNavItem ${item.active ? 'activeGroupsNavItem' : ''}`}>
+            <button key={item.label} type="button" className={`groupsNavItem ${activeSection === item.label ? 'activeGroupsNavItem' : ''}`} onClick={() => { setActiveSection(item.label); if (item.route !== '/groups') router.push(item.route); }}>
               <span className="groupsNavIcon">{item.label.slice(0, 1)}</span>
               <span>{item.label}</span>
             </button>
           ))}
         </nav>
 
-        <button type="button" className="groupsCreateButton">
+        <button type="button" className="groupsCreateButton" onClick={() => router.push('/messages')}>
           + Create new group
         </button>
 
