@@ -11,6 +11,16 @@ export const authService = {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload)
   }),
+  requestPasswordReset: (email) => fetcher('/auth/forgot-password', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email })
+  }),
+  resetPassword: (token, password) => fetcher('/auth/reset-password', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token, password })
+  }),
   me: () => fetcher('/auth/me'),
   users: () => fetcher('/auth/users'),
   followUser: (userId) => fetcher(`/auth/follow/${userId}`, {

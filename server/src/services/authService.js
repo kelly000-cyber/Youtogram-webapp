@@ -1,11 +1,18 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
+const { OAuth2Client } = require('google-auth-library');
+const { Resend } = require('resend');
 const User = require('../models/User');
 const notificationService = require('./notificationService');
 const { getDialCode } = require('../utils/countries');
 
 const normalizePhone = (value = '') => String(value).replace(/[^\d+]/g, '').trim();
 const passwordRule = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{10,}$/;
+
+const getGoogleClient = () => process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
+  ? new OAuth2Client(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET, process.env.GOOGLE_REDIRECT_URI)
+  : null;
 
 const validateStrongPassword = (password) => {
   if (!passwordRule.test(String(password || ''))) {
@@ -76,6 +83,97 @@ exports.login = async ({ email, phone, identifier, password }) => {
   }
 
   return { token: createToken(user) };
+};
+
+exports.getGoogleAuthUrl = () => {
+  const client = getGoogleClient();
+  if (!client) {
+    const error = new Error('Google sign-in is not configured yet');
+    error.status = 503;
+    throw error;
+  }
+  return client.generateAuthUrl({ access_type: 'offline', scope: ['openid', 'email', 'profile'], prompt: 'select_account' });
+};
+
+exports.loginWithGoogle = async (code) => {
+  const client = getGoogleClient();
+  if (!client) {
+    const error = new Error('Google sign-in is not configured yet');
+    error.status = 503;
+    throw error;
+  }
+  const { tokens } = await client.getToken(code);
+  const ticket = await client.verifyIdToken({ idToken: tokens.id_token, audience: process.env.GOOGLE_CLIENT_ID });
+  const profile = ticket.getPayload();
+  if (!profile?.sub || !profile.email || !profile.email_verified) {
+    const error = new Error('Google account email could not be verified');
+    error.status = 400;
+    throw error;
+  }
+
+  const email = profile.email.toLowerCase();
+  let user = await User.findOne({ $or: [{ googleId: profile.sub }, { email }] });
+  if (!user) {
+    const base = (profile.name || email.split('@')[0]).replace(/[^a-zA-Z0-9_]/g, '').slice(0, 20) || 'youtogram_user';
+    let username = base;
+    let suffix = 1;
+    while (await User.exists({ username })) username = `${base}${suffix++}`;
+    user = await User.create({
+      username,
+      email,
+      phone: `google:${profile.sub}`,
+      password: await bcrypt.hash(crypto.randomBytes(32).toString('hex'), 12),
+      googleId: profile.sub,
+      avatar: profile.picture || ''
+    });
+  } else if (!user.googleId) {
+    user.googleId = profile.sub;
+    if (profile.picture && !user.avatar) user.avatar = profile.picture;
+    await user.save();
+  }
+  return { token: createToken(user) };
+};
+
+exports.requestPasswordReset = async (email) => {
+  const cleanEmail = String(email || '').trim().toLowerCase();
+  const user = await User.findOne({ email: cleanEmail });
+  const response = { message: 'If an account exists for that email, reset instructions have been sent.' };
+  if (!user) return response;
+
+  const rawToken = crypto.randomBytes(32).toString('hex');
+  user.passwordResetTokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
+  user.passwordResetExpiresAt = new Date(Date.now() + 30 * 60 * 1000);
+  await user.save();
+
+  if (!process.env.RESEND_API_KEY || !process.env.RESEND_FROM_EMAIL) {
+    console.warn('Password reset requested but Resend is not fully configured.');
+    return response;
+  }
+  const resend = new Resend(process.env.RESEND_API_KEY);
+  const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/?reset=${rawToken}`;
+  await resend.emails.send({
+    from: process.env.RESEND_FROM_EMAIL,
+    to: user.email,
+    subject: 'Reset your Youtogram password',
+    text: `Reset your Youtogram password here: ${resetUrl}\n\nThis link expires in 30 minutes.`
+  });
+  return response;
+};
+
+exports.resetPassword = async (token, password) => {
+  validateStrongPassword(password);
+  const tokenHash = crypto.createHash('sha256').update(String(token || '')).digest('hex');
+  const user = await User.findOne({ passwordResetTokenHash: tokenHash, passwordResetExpiresAt: { $gt: new Date() } });
+  if (!user) {
+    const error = new Error('This reset link is invalid or has expired');
+    error.status = 400;
+    throw error;
+  }
+  user.password = await bcrypt.hash(password, 12);
+  user.passwordResetTokenHash = '';
+  user.passwordResetExpiresAt = null;
+  await user.save();
+  return { message: 'Password updated successfully' };
 };
 
 exports.getProfile = async (userId) => {

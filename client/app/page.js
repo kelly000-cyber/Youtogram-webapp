@@ -15,6 +15,7 @@ function isStrongPassword(value) {
 export default function HomePage() {
   const router = useRouter();
   const [mode, setMode] = useState('login');
+  const [resetToken, setResetToken] = useState('');
   const [form, setForm] = useState(defaultForm);
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
@@ -29,8 +30,24 @@ export default function HomePage() {
   const selectedCountry = getCountry(form.country);
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const callbackToken = params.get('token');
+    const reset = params.get('reset');
+    const authError = params.get('authError');
+
+    if (callbackToken) {
+      localStorage.setItem('youtogram_token', callbackToken);
+      router.replace('/feed');
+      return;
+    }
+    if (reset) {
+      setResetToken(reset);
+      setMode('reset');
+    }
+    if (authError) setMessage(authError);
+
     const token = localStorage.getItem('youtogram_token');
-    if (token) {
+    if (token && !reset) {
       router.replace('/feed');
       return;
     }
@@ -103,6 +120,32 @@ export default function HomePage() {
     setLoading(true);
     setMessage('');
 
+    if (mode === 'forgot') {
+      try {
+        const response = await authService.requestPasswordReset(form.email);
+        setMessage(response.message || 'If an account exists for that email, reset instructions have been sent.');
+      } catch (error) {
+        setMessage(error.message || 'Unable to request a password reset.');
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
+    if (mode === 'reset') {
+      try {
+        const response = await authService.resetPassword(resetToken, form.password);
+        setMessage(response.message || 'Password updated successfully.');
+        setMode('login');
+        setForm((current) => ({ ...current, password: '' }));
+      } catch (error) {
+        setMessage(error.message || 'Unable to reset your password.');
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
     if (mode === 'register' && !isStrongPassword(form.password)) {
       setMessage('Password must be at least 10 characters and include 1 uppercase letter, 1 lowercase letter, 1 number, and 1 symbol.');
       setLoading(false);
@@ -145,6 +188,9 @@ export default function HomePage() {
     }
   };
 
+  const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+  const resetMode = mode === 'forgot' || mode === 'reset';
+
   return (
     <main className="authPage">
       <section className="authPanel">
@@ -171,18 +217,25 @@ export default function HomePage() {
 
         <div className="authCard">
           <div className="authCardHeader">
-            <h2>{mode === 'login' ? 'Welcome back' : 'Create your account'}</h2>
-            <p>{mode === 'login' ? 'Log in with your email or mobile number.' : 'Choose your country so your mobile number matches your location.'}</p>
+            <h2>{mode === 'login' ? 'Welcome back' : mode === 'register' ? 'Create your account' : mode === 'forgot' ? 'Forgot your password?' : 'Create a new password'}</h2>
+            <p>{mode === 'login' ? 'Log in with your email or mobile number.' : mode === 'register' ? 'Choose your country so your mobile number matches your location.' : mode === 'forgot' ? 'Enter your email and we will send reset instructions.' : 'Use at least 10 characters with uppercase, lowercase, number, and symbol.'}</p>
           </div>
 
-          <div className="authToggle">
+          {!resetMode ? <div className="authToggle">
             <button type="button" className={mode === 'login' ? 'active' : ''} onClick={() => setMode('login')}>
               Log In
             </button>
             <button type="button" className={mode === 'register' ? 'active' : ''} onClick={() => setMode('register')}>
               Create Account
             </button>
-          </div>
+          </div> : null}
+
+          {mode === 'login' ? (
+            <a className="googleAuthButton" href={`${apiBase}/auth/google`}>
+              <span className="googleMark" aria-hidden="true">G</span>
+              Continue with Google
+            </a>
+          ) : null}
 
           <form ref={formRef} className="authForm" onSubmit={handleSubmit}>
             {mode === 'register' && (
@@ -204,7 +257,7 @@ export default function HomePage() {
               </>
             )}
             <label>
-              {mode === 'login' ? 'Email address or mobile number' : 'Email address'}
+              Email address{mode === 'login' ? ' or mobile number' : ''}
               <input name="email" type={mode === 'login' ? 'text' : 'email'} value={form.email} onChange={handleChange} required />
             </label>
             {mode === 'register' && (
@@ -216,6 +269,7 @@ export default function HomePage() {
                 </div>
               </label>
             )}
+            {mode !== 'forgot' && (
             <label>
               Password
               <div className="passwordInputGroup">
@@ -225,9 +279,9 @@ export default function HomePage() {
                   value={form.password}
                   onChange={handleChange}
                   required
-                  minLength={mode === 'register' ? 10 : undefined}
+                  minLength={mode === 'register' || mode === 'reset' ? 10 : undefined}
                   autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
-                  aria-describedby={mode === 'register' ? 'password-rules' : undefined}
+                  aria-describedby={mode === 'register' || mode === 'reset' ? 'password-rules' : undefined}
                 />
                 <button
                   type="button"
@@ -252,17 +306,19 @@ export default function HomePage() {
                   </svg>
                 </button>
               </div>
-              {mode === 'register' ? (
+              {mode === 'register' || mode === 'reset' ? (
                 <small id="password-rules" className="passwordRulesNote">
                   Use 10 or more characters with 1 uppercase letter, 1 lowercase letter, 1 number, and 1 symbol.
                 </small>
               ) : null}
             </label>
-            <div className="authTerms">
+            )}
+            {mode === 'login' ? <button type="button" className="forgotPasswordButton" onClick={() => { setMode('forgot'); setMessage(''); }}>Forgot password?</button> : null}
+            {!resetMode ? <div className="authTerms">
               <p className="termsNote">
                 By clicking {mode === 'login' ? 'Log in' : 'Create account'}, you agree to review and accept the Terms of Service and Privacy Policy.
               </p>
-            </div>
+            </div> : null}
             {showTerms && (
               <div className="termsModalOverlay" role="dialog" aria-modal="true">
                 <div className="termsModal">
@@ -300,8 +356,9 @@ export default function HomePage() {
               </div>
             )}
             <button type="submit" disabled={loading} className="submitButton">
-              {loading ? 'Please wait...' : mode === 'login' ? 'Log in' : 'Create account'}
+              {loading ? 'Please wait...' : mode === 'login' ? 'Log in' : mode === 'register' ? 'Create account' : mode === 'forgot' ? 'Send reset link' : 'Update password'}
             </button>
+            {resetMode ? <button type="button" className="authBackButton" onClick={() => { setMode('login'); setMessage(''); }}>Back to login</button> : null}
             {message && <p className="authMessage">{message}</p>}
           </form>
         </div>

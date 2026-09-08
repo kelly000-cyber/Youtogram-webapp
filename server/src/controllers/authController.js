@@ -18,6 +18,40 @@ exports.login = async (req, res, next) => {
   }
 };
 
+exports.google = (req, res, next) => {
+  try {
+    res.redirect(authService.getGoogleAuthUrl());
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.googleCallback = async (req, res) => {
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+  try {
+    const result = await authService.loginWithGoogle(req.query.code);
+    res.redirect(`${frontendUrl}/?token=${encodeURIComponent(result.token)}`);
+  } catch (error) {
+    res.redirect(`${frontendUrl}/?authError=${encodeURIComponent(error.message || 'Google sign-in failed')}`);
+  }
+};
+
+exports.requestPasswordReset = async (req, res, next) => {
+  try {
+    res.json({ status: 'success', ...(await authService.requestPasswordReset(req.body.email)) });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.resetPassword = async (req, res, next) => {
+  try {
+    res.json({ status: 'success', ...(await authService.resetPassword(req.body.token, req.body.password)) });
+  } catch (error) {
+    next(error);
+  }
+};
+
 exports.getProfile = async (req, res, next) => {
   try {
     const profile = await authService.getProfile(req.user.id);
