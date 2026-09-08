@@ -159,6 +159,120 @@
   background: #1f1f1f;
 }
 
+.postVideoButton {
+  border: 0;
+  border-radius: 10px;
+  padding: 0.9rem 1rem;
+  background: #1877f2;
+  color: #ffffff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.postVideoButton:hover,
+.publishButton:hover {
+  background: #166fe5;
+}
+
+.uploadOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.68);
+}
+
+.uploadModal {
+  width: min(520px, 100%);
+  display: grid;
+  gap: 1rem;
+  padding: 1.25rem;
+  border-radius: 16px;
+  background: #ffffff;
+  color: #111827;
+}
+
+.uploadHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.uploadHeader h2 {
+  margin: 0;
+}
+
+.uploadHeader button {
+  width: 38px;
+  height: 38px;
+  border: 0;
+  border-radius: 50%;
+  background: #e5e7eb;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.videoPicker {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 100px;
+  padding: 1rem;
+  border: 2px dashed #9ca3af;
+  border-radius: 12px;
+  color: #374151;
+  text-align: center;
+  cursor: pointer;
+}
+
+.videoPicker input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.uploadModal input:not([type='file']),
+.uploadModal textarea {
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  padding: 0.85rem;
+  color: #111827;
+  font: inherit;
+}
+
+.uploadModal textarea {
+  resize: vertical;
+}
+
+.uploadPreview {
+  width: 100%;
+  max-height: 240px;
+  border-radius: 10px;
+  background: #000000;
+  object-fit: contain;
+}
+
+.publishButton {
+  min-height: 46px;
+  border: 0;
+  border-radius: 10px;
+  background: #1877f2;
+  color: #ffffff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.publishButton:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
 .actions span {
   color: #fff;
   font-size: 0.95rem;

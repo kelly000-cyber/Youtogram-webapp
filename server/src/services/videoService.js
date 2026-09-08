@@ -2,6 +2,12 @@ const Video = require('../models/Video');
 const notificationService = require('./notificationService');
 
 exports.uploadVideo = async (userId, { title, description, url, thumbnail = '' }) => {
+  if (!url) {
+    const error = new Error('Please choose a video to upload');
+    error.status = 400;
+    throw error;
+  }
+
   const video = await Video.create({ author: userId, title, description, url, thumbnail });
   return video;
 };

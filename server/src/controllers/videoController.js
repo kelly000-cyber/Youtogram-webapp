@@ -2,7 +2,13 @@ const videoService = require('../services/videoService');
 
 exports.uploadVideo = async (req, res, next) => {
   try {
-    const video = await videoService.uploadVideo(req.user.id, req.body);
+    const video = await videoService.uploadVideo(req.user.id, {
+      ...req.body,
+      url: req.file?.path || req.body.url,
+      mimeType: req.file?.mimetype,
+      fileName: req.file?.originalname,
+      sizeBytes: req.file?.size
+    });
     res.status(201).json({ status: 'success', data: video });
   } catch (error) {
     next(error);

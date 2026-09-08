@@ -16,6 +16,12 @@ export default function VideosPage() {
   const [error, setError] = useState('');
   const [authExpired, setAuthExpired] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [showUpload, setShowUpload] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadFile, setUploadFile] = useState(null);
+  const [uploadPreview, setUploadPreview] = useState('');
+  const [uploadTitle, setUploadTitle] = useState('');
+  const [uploadDescription, setUploadDescription] = useState('');
 
   useEffect(() => {
     const token = localStorage.getItem('youtogram_token');
@@ -68,10 +74,57 @@ export default function VideosPage() {
     }
   };
 
+  const handleVideoFileChange = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('video/')) {
+      setError('Please choose a video file.');
+      event.target.value = '';
+      return;
+    }
+    if (file.size > 200 * 1024 * 1024) {
+      setError('Videos must be 200 MB or smaller.');
+      event.target.value = '';
+      return;
+    }
+    setError('');
+    setUploadFile(file);
+    setUploadPreview(URL.createObjectURL(file));
+  };
+
+  const handleUploadVideo = async (event) => {
+    event.preventDefault();
+    if (!uploadFile) {
+      setError('Choose a video before publishing.');
+      return;
+    }
+
+    setUploading(true);
+    setError('');
+    try {
+      const payload = new FormData();
+      payload.append('video', uploadFile);
+      payload.append('title', uploadTitle.trim() || 'Youtogram video');
+      payload.append('description', uploadDescription.trim());
+      const response = await videoService.upload(payload);
+      setVideos((current) => [response.data, ...current]);
+      setShowUpload(false);
+      setUploadFile(null);
+      setUploadPreview('');
+      setUploadTitle('');
+      setUploadDescription('');
+    } catch (uploadError) {
+      setError(uploadError.message || 'Unable to publish video.');
+    } finally {
+      setUploading(false);
+    }
+  };
+
   return (
     <main className={styles.page}>
       <aside className={styles.sidebar}>
         <h1>Reels</h1>
+        <button type="button" className={styles.postVideoButton} onClick={() => setShowUpload(true)}>+ Post video</button>
         <button type="button" className={styles.sidebarItemActive}>For you</button>
         <button type="button" className={styles.sidebarItem} onClick={() => router.push('/feed')}>Following</button>
         <button type="button" className={styles.sidebarItem} onClick={() => router.push('/profile')}>Profile</button>
@@ -118,6 +171,25 @@ export default function VideosPage() {
             </article>
           ))}
         </section>
+      ) : null}
+
+      {showUpload ? (
+        <div className={styles.uploadOverlay} role="dialog" aria-modal="true" aria-labelledby="post-video-title">
+          <form className={styles.uploadModal} onSubmit={handleUploadVideo}>
+            <header className={styles.uploadHeader}>
+              <h2 id="post-video-title">Post video</h2>
+              <button type="button" onClick={() => setShowUpload(false)} aria-label="Close video upload">×</button>
+            </header>
+            <label className={styles.videoPicker}>
+              <span>{uploadFile ? uploadFile.name : 'Choose a video from your device'}</span>
+              <input type="file" accept="video/*" onChange={handleVideoFileChange} />
+            </label>
+            {uploadPreview ? <video className={styles.uploadPreview} src={uploadPreview} controls muted playsInline /> : null}
+            <input value={uploadTitle} onChange={(event) => setUploadTitle(event.target.value)} placeholder="Video title" maxLength={120} required />
+            <textarea value={uploadDescription} onChange={(event) => setUploadDescription(event.target.value)} placeholder="Add a description" maxLength={500} rows={3} />
+            <button type="submit" className={styles.publishButton} disabled={uploading}>{uploading ? 'Uploading...' : 'Publish video'}</button>
+          </form>
+        </div>
       ) : null}
     </main>
   );
