@@ -16,7 +16,8 @@ const shortcuts = [
 
 const composerDefaults = {
   text: '',
-  mediaUrl: '',
+  mediaFile: null,
+  mediaPreview: '',
   mediaType: 'image',
   isStory: false
 };
@@ -163,24 +164,47 @@ export default function FeedPage() {
     }));
   };
 
+  const handleMediaChange = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
+      setError('Please choose an image or video file.');
+      event.target.value = '';
+      return;
+    }
+
+    if (file.size > 100 * 1024 * 1024) {
+      setError('Media files must be 100 MB or smaller.');
+      event.target.value = '';
+      return;
+    }
+
+    setError('');
+    setComposer((current) => ({
+      ...current,
+      mediaFile: file,
+      mediaType: file.type.startsWith('video/') ? 'video' : 'image',
+      mediaPreview: URL.createObjectURL(file)
+    }));
+  };
+
   const handleCreatePost = async (event) => {
     event.preventDefault();
     setError('');
 
     try {
-      const media = composer.mediaUrl
-        ? [{
-            url: composer.mediaUrl,
-            type: composer.mediaType,
-            mimeType: composer.mediaType === 'video' ? 'video/mp4' : 'image/jpeg'
-          }]
-        : [];
+      if (!composer.text.trim() && !composer.mediaFile) {
+        setError('Add some text or choose a photo/video before posting.');
+        return;
+      }
 
-      const response = await postService.create({
-        text: composer.text,
-        media,
-        isStory: composer.isStory
-      });
+      const payload = new FormData();
+      payload.append('text', composer.text);
+      payload.append('isStory', String(composer.isStory));
+      if (composer.mediaFile) payload.append('media', composer.mediaFile);
+
+      const response = await postService.create(payload);
 
       if (composer.isStory) {
         setStories((current) => [response.data, ...current]);
@@ -347,17 +371,10 @@ export default function FeedPage() {
                 </button>
               </div>
               <div className="facebookComposerActions">
-                <input
-                  name="mediaUrl"
-                  value={composer.mediaUrl}
-                  onChange={handleComposerChange}
-                  placeholder="Photo or video URL"
-                  aria-label="Photo or video URL"
-                />
-                <select name="mediaType" value={composer.mediaType} onChange={handleComposerChange} aria-label="Media type">
-                  <option value="image">Photo</option>
-                  <option value="video">Video</option>
-                </select>
+                <label className="facebookMediaPicker">
+                  <span>{composer.mediaFile ? `Selected: ${composer.mediaFile.name}` : 'Choose photo or video'}</span>
+                  <input type="file" accept="image/*,video/*" onChange={handleMediaChange} aria-label="Choose photo or video" />
+                </label>
                 <label className="facebookStoryToggle">
                   <input type="checkbox" name="isStory" checked={composer.isStory} onChange={handleComposerChange} />
                   <span>Add to story</span>
@@ -366,6 +383,15 @@ export default function FeedPage() {
                   {composer.isStory ? 'Share story' : 'Post'}
                 </button>
               </div>
+              {composer.mediaPreview ? (
+                <div className="facebookComposerPreview">
+                  {composer.mediaType === 'video' ? (
+                    <video src={composer.mediaPreview} controls muted playsInline />
+                  ) : (
+                    <img src={composer.mediaPreview} alt="Selected upload preview" />
+                  )}
+                </div>
+              ) : null}
             </form>
           </section>
 

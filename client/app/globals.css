@@ -5265,6 +5265,44 @@ body.facebook-home .activeTopbarNav::after {
   background: #166fe5;
 }
 
+.facebookMediaPicker {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: 42px;
+  padding: 0 12px;
+  overflow: hidden;
+  border: 1px solid #ccd0d5;
+  border-radius: 6px;
+  background: #f0f2f5;
+  color: #050505;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.facebookMediaPicker input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.facebookComposerPreview {
+  max-width: 280px;
+  overflow: hidden;
+  border-radius: 10px;
+  background: #111827;
+}
+
+.facebookComposerPreview img,
+.facebookComposerPreview video {
+  display: block;
+  width: 100%;
+  max-height: 220px;
+  object-fit: cover;
+}
+
 .facebookFeedStack {
   display: grid;
   gap: 16px;
