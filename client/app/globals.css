@@ -1435,6 +1435,174 @@ p, span, a, button, input, textarea, select, label, li {
   }
 }
 
+/* Messenger-style messages workspace. */
+.messagesPage {
+  min-height: calc(100vh - 72px);
+  grid-template-columns: 320px minmax(0, 1fr) 260px;
+  gap: 0;
+  max-width: 1500px;
+  margin: 0 auto;
+  padding: 0;
+  background: #f0f2f5;
+}
+
+.messagesSidebar,
+.messagesMain,
+.messagesInfoPanel {
+  min-width: 0;
+  min-height: calc(100vh - 72px);
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.messagesSidebar {
+  padding: 1.25rem 0.75rem;
+  border-right: 1px solid #dfe3ee;
+  background: #ffffff;
+}
+
+.messagesSidebarHeader,
+.messagesChatHeader {
+  padding: 0 0.5rem 0.75rem;
+}
+
+.messagesSidebarHeader h1 {
+  font-size: 1.55rem;
+}
+
+.messagesSidebar .groupsSearchBox {
+  margin: 0.4rem 0 0.75rem;
+}
+
+.messagesSidebar .groupsSearchBox input {
+  background: #f0f2f5;
+}
+
+.messagesConversationList {
+  max-height: calc(100vh - 220px);
+}
+
+.messageConversationItem {
+  padding: 0.7rem;
+  border-radius: 10px;
+}
+
+.activeConversationItem {
+  background: #e7f3ff;
+}
+
+.messagesMain {
+  grid-template-rows: 72px minmax(0, 1fr) 68px;
+  background: #ffffff;
+}
+
+.messagesChatHeader {
+  min-height: 72px;
+  border-bottom: 1px solid #dfe3ee;
+}
+
+.messagesChatActions .topbarIconButton {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #e7f3ff;
+  color: #1877f2;
+  box-shadow: none;
+  font-size: 0;
+}
+
+.messagesChatActions .topbarIconButton::after {
+  content: '•';
+  font-size: 1.2rem;
+}
+
+.messagesThread {
+  align-content: end;
+  padding: 1.25rem clamp(1rem, 4vw, 3rem);
+  background: #ffffff;
+}
+
+.messageBubble {
+  max-width: min(520px, 78%);
+  border-radius: 20px;
+}
+
+.messagesComposer {
+  grid-template-columns: auto auto auto minmax(0, 1fr) auto;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-top: 1px solid #dfe3ee;
+}
+
+.messagesComposer input {
+  min-width: 0;
+}
+
+.messagesSendButton {
+  width: auto;
+  min-width: 60px;
+  padding: 0 1rem;
+}
+
+.messagesInfoPanel {
+  padding: 1.5rem 1rem;
+  border-left: 1px solid #dfe3ee;
+  background: #ffffff;
+}
+
+.messagesInfoSections button:hover {
+  background: #e7f3ff;
+  color: #1877f2;
+}
+
+@media (max-width: 1100px) {
+  .messagesPage {
+    grid-template-columns: 300px minmax(0, 1fr);
+  }
+
+  .messagesInfoPanel {
+    display: none;
+  }
+}
+
+@media (max-width: 720px) {
+  .messagesPage {
+    display: block;
+    min-height: calc(100vh - 72px);
+  }
+
+  .messagesSidebar {
+    min-height: auto;
+    border-right: 0;
+    border-bottom: 1px solid #dfe3ee;
+  }
+
+  .messagesConversationList {
+    display: flex;
+    max-height: 118px;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  .messageConversationItem {
+    min-width: 190px;
+  }
+
+  .messagesMain {
+    min-height: calc(100vh - 300px);
+  }
+
+  .messagesComposer {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .messagesComposer .composerMiniButton:nth-child(2),
+  .messagesComposer .composerMiniButton:nth-child(3) {
+    display: none;
+  }
+}
+
 .profileSecondaryButton {
   border: 1px solid rgba(255, 255, 255, 0.12);
   background: transparent;
@@ -5192,6 +5360,36 @@ body.facebook-home .activeTopbarNav::after {
 .facebookComposerQuickActionActive {
   background: #e7f3ff;
   border-color: #1877f2;
+  color: #1877f2;
+}
+
+.emotionTagPicker {
+  display: grid;
+  gap: 0.45rem;
+  color: #65676b;
+  font-size: 0.8rem;
+}
+
+.emotionTagPicker > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.emotionTagPicker button {
+  border: 1px solid #ccd0d5;
+  border-radius: 999px;
+  padding: 0.4rem 0.65rem;
+  background: #f0f2f5;
+  color: #374151;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+
+.emotionTagPicker button:hover,
+.emotionTagPicker .emotionTagActive {
+  border-color: #1877f2;
+  background: #e7f3ff;
   color: #1877f2;
 }
 

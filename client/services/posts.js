@@ -15,5 +15,10 @@ export const postService = {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload)
   }),
+  trackInterest: (postId, action) => fetcher(`/posts/${postId}/interest`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action })
+  }),
   stories: () => fetcher('/posts/stories')
 };

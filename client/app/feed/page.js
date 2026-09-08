@@ -23,6 +23,16 @@ const composerDefaults = {
 };
 
 const captionLimit = 280;
+const emotionOptions = [
+  ['funny', '😂 Funny'],
+  ['romantic', '❤️ Romantic'],
+  ['emotional', '😢 Emotional'],
+  ['relaxing', '😌 Relaxing'],
+  ['exciting', '🔥 Exciting'],
+  ['motivational', '💪 Motivational'],
+  ['educational', '🎓 Educational'],
+  ['entertainment', '🎵 Entertainment']
+];
 
 export default function FeedPage() {
   const router = useRouter();
@@ -42,6 +52,7 @@ export default function FeedPage() {
   const [shareNote, setShareNote] = useState('');
   const [shareComment, setShareComment] = useState('');
   const [composer, setComposer] = useState(composerDefaults);
+  const [emotionTags, setEmotionTags] = useState([]);
   const mediaInputRef = useRef(null);
 
   const handleComposerAction = (action) => {
@@ -177,6 +188,10 @@ export default function FeedPage() {
     }));
   };
 
+  const toggleEmotionTag = (tag) => {
+    setEmotionTags((current) => current.includes(tag) ? current.filter((item) => item !== tag) : [...current, tag].slice(0, 3));
+  };
+
   const handleMediaChange = (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -225,6 +240,7 @@ export default function FeedPage() {
       const payload = new FormData();
       payload.append('text', composer.text);
       payload.append('isStory', String(composer.isStory));
+      emotionTags.forEach((tag) => payload.append('emotionTags', tag));
       if (composer.mediaFile) payload.append('media', composer.mediaFile);
 
       const response = await postService.create(payload);
@@ -237,6 +253,7 @@ export default function FeedPage() {
       }
 
       setComposer(composerDefaults);
+      setEmotionTags([]);
     } catch (postError) {
       setError(postError.message || 'Unable to create post.');
     }
@@ -248,8 +265,11 @@ export default function FeedPage() {
 
   const handleToggleLike = async (postId) => {
     try {
+      const currentPost = posts.find((post) => post._id === postId);
+      const wasLiked = currentPost?.likes?.some((like) => String(like) === String(profile?._id));
       const response = await postService.toggleLike(postId);
       updatePostInState(response.data);
+      if (!wasLiked) postService.trackInterest(postId, 'like').catch(() => {});
     } catch (actionError) {
       setError(actionError.message || 'Unable to update reaction.');
     }
@@ -261,12 +281,14 @@ export default function FeedPage() {
     try {
       const response = await postService.addComment(postId, { text: text.trim() });
       updatePostInState(response.data);
+      postService.trackInterest(postId, 'comment').catch(() => {});
     } catch (actionError) {
       setError(actionError.message || 'Unable to add comment.');
     }
   };
 
   const handleShare = (postId) => {
+    postService.trackInterest(postId, 'share').catch(() => {});
     setSharePostId(postId);
     setShareNote('');
     setShareComment('');
@@ -454,6 +476,14 @@ export default function FeedPage() {
                 <button type="button" className={`facebookComposerQuickAction ${composer.isStory ? 'facebookComposerQuickActionActive' : ''}`} onClick={() => handleComposerAction('story')}>
                   Add to story
                 </button>
+              </div>
+              <div className="emotionTagPicker" aria-label="Choose post topics">
+                <span>What is this post about?</span>
+                <div>
+                  {emotionOptions.map(([tag, label]) => (
+                    <button key={tag} type="button" className={emotionTags.includes(tag) ? 'emotionTagActive' : ''} onClick={() => toggleEmotionTag(tag)}>{label}</button>
+                  ))}
+                </div>
               </div>
               <div className="facebookComposerActions">
                 <label className="facebookMediaPicker">

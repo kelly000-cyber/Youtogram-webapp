@@ -2,6 +2,16 @@ const Post = require('../models/Post');
 const User = require('../models/User');
 const notificationService = require('./notificationService');
 
+const emotionWeights = {
+  like: 3,
+  comment: 4,
+  share: 6,
+  save: 5,
+  watch: 4,
+  skip: -2,
+  notInterested: -8
+};
+
 const populatePostQuery = (query) =>
   query
     .populate('author', 'username avatar')
@@ -43,8 +53,10 @@ const getConnectedAuthorIds = async (userId) => {
   return [...new Set(connectedIds)];
 };
 
-exports.createPost = async (userId, { text, media = [], isStory = false }) => {
-  const post = await Post.create({ author: userId, text, media: normalizeMedia(media), isStory });
+exports.createPost = async (userId, { text, media = [], isStory = false, emotionTags = [] }) => {
+  const allowedTags = ['funny', 'romantic', 'emotional', 'angry', 'relaxing', 'exciting', 'motivational', 'educational', 'entertainment'];
+  const tags = [...new Set((Array.isArray(emotionTags) ? emotionTags : String(emotionTags).split(',')).filter((tag) => allowedTags.includes(tag)))];
+  const post = await Post.create({ author: userId, text, media: normalizeMedia(media), isStory, emotionTags: tags });
   return await populatePostQuery(Post.findById(post._id));
 };
 
@@ -63,7 +75,46 @@ exports.getFeed = async (userId, query = {}) => {
       .limit(limit)
   );
 
-  return { page, limit, items: posts };
+  const currentUser = await User.findById(userId).select('emotionPreferences').lean();
+  const preferences = currentUser?.emotionPreferences || {};
+  const now = Date.now();
+  const rankedPosts = posts
+    .map((post) => {
+      const ageHours = Math.max(0, (now - new Date(post.createdAt).getTime()) / 3600000);
+      const interestScore = (post.emotionTags || []).reduce((score, tag) => score + Number(preferences[tag] || 0), 0);
+      const engagementScore = (post.likes?.length || 0) * 0.5 + (post.comments?.length || 0) * 0.8;
+      const freshnessScore = Math.max(0, 24 - ageHours) * 0.15;
+      return { post, recommendationScore: interestScore + engagementScore + freshnessScore };
+    })
+    .sort((left, right) => right.recommendationScore - left.recommendationScore)
+    .map(({ post }) => post);
+
+  return { page, limit, items: rankedPosts };
+};
+
+exports.trackInterest = async (postId, userId, action) => {
+  const weight = emotionWeights[action];
+  if (!weight) {
+    const error = new Error('Unsupported recommendation action');
+    error.status = 400;
+    throw error;
+  }
+
+  const post = await Post.findById(postId).select('emotionTags');
+  if (!post) {
+    const error = new Error('Post not found');
+    error.status = 404;
+    throw error;
+  }
+
+  const user = await User.findById(userId).select('emotionPreferences');
+  if (!user.emotionPreferences) user.emotionPreferences = new Map();
+  post.emotionTags.forEach((tag) => {
+    const current = Number(user.emotionPreferences.get(tag) || 0);
+    user.emotionPreferences.set(tag, Math.max(-100, Math.min(100, current + weight)));
+  });
+  await user.save();
+  return { tracked: true };
 };
 
 exports.toggleLike = async (postId, userId) => {

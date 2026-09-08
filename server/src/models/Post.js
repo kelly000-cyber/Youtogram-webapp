@@ -17,6 +17,10 @@ const mediaSchema = new mongoose.Schema({
 const postSchema = new mongoose.Schema({
   author: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   text: { type: String, trim: true },
+  emotionTags: [{
+    type: String,
+    enum: ['funny', 'romantic', 'emotional', 'angry', 'relaxing', 'exciting', 'motivational', 'educational', 'entertainment']
+  }],
   media: [mediaSchema],
   likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   comments: [

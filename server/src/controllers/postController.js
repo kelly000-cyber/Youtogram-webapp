@@ -43,6 +43,15 @@ exports.addComment = async (req, res, next) => {
   }
 };
 
+exports.trackInterest = async (req, res, next) => {
+  try {
+    const result = await postService.trackInterest(req.params.id, req.user.id, req.body.action);
+    res.json({ status: 'success', data: result });
+  } catch (error) {
+    next(error);
+  }
+};
+
 exports.getStories = async (req, res, next) => {
   try {
     const stories = await postService.getStories(req.user.id);

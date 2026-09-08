@@ -9,5 +9,6 @@ router.get('/', authMiddleware, postController.getFeed);
 router.get('/stories', authMiddleware, postController.getStories);
 router.put('/:id/like', authMiddleware, postController.toggleLike);
 router.post('/:id/comment', authMiddleware, postController.addComment);
+router.post('/:id/interest', authMiddleware, postController.trackInterest);
 
 module.exports = router;
