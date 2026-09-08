@@ -1350,6 +1350,39 @@ p, span, a, button, input, textarea, select, label, li {
   resize: vertical;
 }
 
+.profilePicturePicker {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.profilePicturePickerPreview {
+  width: 72px;
+  height: 72px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  overflow: hidden;
+  border-radius: 50%;
+  background: var(--surface-alt);
+  color: var(--text);
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
+.profilePicturePickerPreview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profilePicturePicker input[type='file'] {
+  min-height: auto;
+  padding: 0.65rem;
+  cursor: pointer;
+}
+
 .profileNote {
   color: var(--muted);
   font-size: 0.92rem;
@@ -4599,7 +4632,8 @@ body.light-theme .groupsSearchBox input {
 
 .googleAuthButton,
 .forgotPasswordButton,
-.authBackButton {
+.authBackButton,
+.termsReviewButton {
   font: inherit;
   cursor: pointer;
 }
@@ -4638,8 +4672,16 @@ body.light-theme .groupsSearchBox input {
 }
 
 .forgotPasswordButton:hover,
-.authBackButton:hover {
+.authBackButton:hover,
+.termsReviewButton:hover {
   text-decoration: underline;
+}
+
+.termsReviewButton {
+  padding: 0;
+  color: #2563eb;
+  font-size: 0.9rem;
+  text-align: left;
 }
 
 .termsNote {

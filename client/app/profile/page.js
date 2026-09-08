@@ -14,6 +14,7 @@ export default function ProfilePage() {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+  const [avatarFileName, setAvatarFileName] = useState('');
 
   useEffect(() => {
     const selectedTheme = window.localStorage.getItem('youtogram_theme') || 'dark';
@@ -58,6 +59,32 @@ export default function ProfilePage() {
 
   const handleChange = (event) => {
     setForm((current) => ({ ...current, [event.target.name]: event.target.value }));
+  };
+
+  const handleAvatarFileChange = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setError('Please choose an image file.');
+      event.target.value = '';
+      return;
+    }
+
+    if (file.size > 1024 * 1024) {
+      setError('Profile pictures must be 1 MB or smaller.');
+      event.target.value = '';
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setForm((current) => ({ ...current, avatar: String(reader.result || '') }));
+      setAvatarFileName(file.name);
+      setError('');
+    };
+    reader.onerror = () => setError('Unable to read that image. Please try another file.');
+    reader.readAsDataURL(file);
   };
 
   const handleSubmit = async (event) => {
@@ -270,8 +297,16 @@ export default function ProfilePage() {
                   <input name="country" type="text" value={form.country} onChange={handleChange} placeholder="Country" />
                 </div>
                 <div className="profileField">
-                  <label>Avatar URL</label>
-                  <input name="avatar" type="url" value={form.avatar} onChange={handleChange} placeholder="https://example.com/avatar.jpg" />
+                  <label htmlFor="profile-avatar-file">Profile picture</label>
+                  <div className="profilePicturePicker">
+                    <div className="profilePicturePickerPreview">
+                      {form.avatar ? <img src={form.avatar} alt="Selected profile preview" /> : profile.username?.slice(0, 2).toUpperCase()}
+                    </div>
+                    <div>
+                      <input id="profile-avatar-file" type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={handleAvatarFileChange} />
+                      <small className="profileNote">JPG, PNG, WebP, or GIF up to 1 MB. {avatarFileName || 'Choose an image to update your picture.'}</small>
+                    </div>
+                  </div>
                 </div>
                 <div className="profileField profileFieldFull">
                   <label>Bio</label>

@@ -115,6 +115,12 @@ export default function HomePage() {
     setIsDraggingTerms(false);
   };
 
+  const changeAuthMode = (nextMode) => {
+    setMode(nextMode);
+    setAcceptedTerms(false);
+    setMessage('');
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     setLoading(true);
@@ -222,10 +228,10 @@ export default function HomePage() {
           </div>
 
           {!resetMode ? <div className="authToggle">
-            <button type="button" className={mode === 'login' ? 'active' : ''} onClick={() => setMode('login')}>
+            <button type="button" className={mode === 'login' ? 'active' : ''} onClick={() => changeAuthMode('login')}>
               Log In
             </button>
-            <button type="button" className={mode === 'register' ? 'active' : ''} onClick={() => setMode('register')}>
+            <button type="button" className={mode === 'register' ? 'active' : ''} onClick={() => changeAuthMode('register')}>
               Create Account
             </button>
           </div> : null}
@@ -318,6 +324,11 @@ export default function HomePage() {
               <p className="termsNote">
                 By clicking {mode === 'login' ? 'Log in' : 'Create account'}, you agree to review and accept the Terms of Service and Privacy Policy.
               </p>
+              {mode === 'register' ? (
+                <button type="button" className="termsReviewButton" onClick={() => { setSubmitAfterAccept(false); setShowTerms(true); }}>
+                  Review Terms & Privacy Policy
+                </button>
+              ) : null}
             </div> : null}
             {showTerms && (
               <div className="termsModalOverlay" role="dialog" aria-modal="true">
