@@ -6015,6 +6015,13 @@ body.facebook-home.light-theme .facebookContactDot {
   overscroll-behavior: contain;
   padding-right: 0.5rem;
   scrollbar-gutter: stable;
+  cursor: grab;
+  user-select: none;
+  touch-action: pan-y;
+}
+
+.termsModalContent.isDraggingTerms {
+  cursor: grabbing;
 }
 
 @media (max-width: 640px) {

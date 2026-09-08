@@ -21,7 +21,10 @@ export default function HomePage() {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [isDraggingTerms, setIsDraggingTerms] = useState(false);
   const formRef = useRef(null);
+  const termsContentRef = useRef(null);
+  const termsDragRef = useRef({ startY: 0, startScrollTop: 0 });
   const submitAfterAccept = useRef(false);
   const selectedCountry = getCountry(form.country);
 
@@ -66,6 +69,33 @@ export default function HomePage() {
       submitAfterAccept.current = false;
       formRef.current?.requestSubmit();
     }
+  };
+
+  const handleTermsPointerDown = (event) => {
+    if (event.pointerType === 'mouse' && event.button !== 0) return;
+
+    const content = termsContentRef.current;
+    if (!content || content.scrollHeight <= content.clientHeight) return;
+
+    termsDragRef.current = {
+      startY: event.clientY,
+      startScrollTop: content.scrollTop
+    };
+    setIsDraggingTerms(true);
+    content.setPointerCapture?.(event.pointerId);
+  };
+
+  const handleTermsPointerMove = (event) => {
+    if (!isDraggingTerms) return;
+
+    const content = termsContentRef.current;
+    if (!content) return;
+
+    content.scrollTop = termsDragRef.current.startScrollTop - (event.clientY - termsDragRef.current.startY);
+  };
+
+  const stopTermsDragging = () => {
+    setIsDraggingTerms(false);
   };
 
   const handleSubmit = async (event) => {
@@ -240,7 +270,14 @@ export default function HomePage() {
                     <h3>Youtogram Terms of Service & Privacy Policy</h3>
                     <p>Review and accept these terms to continue.</p>
                   </div>
-                  <div className="termsModalContent">
+                  <div
+                    ref={termsContentRef}
+                    className={`termsModalContent ${isDraggingTerms ? 'isDraggingTerms' : ''}`}
+                    onPointerDown={handleTermsPointerDown}
+                    onPointerMove={handleTermsPointerMove}
+                    onPointerUp={stopTermsDragging}
+                    onPointerCancel={stopTermsDragging}
+                  >
                     <p>Welcome to Youtogram. By accessing or using our platform, you agree to these Terms.</p>
                     <p>Use of the Platform: You may create, share, and engage with content only for lawful purposes. Do not post illegal, harmful, misleading content, engage in fraud, impersonation, or scams, violate intellectual property rights, or harass others.</p>
                     <p>User Accounts: You are responsible for your account and activity. Keep your login details secure. We may suspend or terminate accounts that violate our rules.</p>
