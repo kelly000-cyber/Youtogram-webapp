@@ -252,7 +252,6 @@ export default function FeedPage() {
                 <span>{profile?.country || 'Social feed'}</span>
               </div>
             </div>
-            <p className="facebookSidebarNote">Your shortcuts and profile sit here like a familiar home feed.</p>
           </section>
 
           <section className="facebookPanel facebookShortcutPanel">
@@ -400,23 +399,14 @@ export default function FeedPage() {
         </section>
 
         <aside className="facebookRightRail">
-          <section className="facebookPanel facebookContactsCard">
+          <section className="facebookPanel facebookGroupChatsCard">
             <div className="facebookSectionHeader">
-              <strong>Contacts</strong>
-              <span>{profile?.friends?.length || 0} online</span>
+              <strong>Group chats</strong>
             </div>
-            <div className="facebookContactsList">
-              {(profile?.friends || []).slice(0, 8).map((friend) => (
-                <button key={friend._id} type="button" className="facebookContactRow">
-                  <span className="facebookContactAvatarWrap">
-                    <img src={friend.avatar || '/youtogram.jpg'} alt={friend.username} />
-                    <span className="facebookContactDot" />
-                  </span>
-                  <span>{friend.username}</span>
-                </button>
-              ))}
-              {!profile?.friends?.length ? <p className="facebookSidebarNote">Add friends to see contacts here.</p> : null}
-            </div>
+            <button type="button" className="facebookCreateGroupButton" onClick={() => router.push('/messages')}>
+              <span aria-hidden="true">+</span>
+              <strong>Create group chat</strong>
+            </button>
           </section>
 
             <section className="facebookPanel facebookSponsoredCard">

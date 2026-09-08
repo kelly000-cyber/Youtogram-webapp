@@ -5849,6 +5849,137 @@ body.facebook-home.light-theme .facebookContactDot {
   border-color: #ffffff;
 }
 
+/* Feed reference layout: light three-column home with the composer first. */
+body.facebook-home {
+  color-scheme: light;
+  background: #f0f2f5;
+}
+
+body.facebook-home .navbar {
+  background: #ffffff;
+  border-bottom: 1px solid #dfe3ee;
+}
+
+body.facebook-home .topbarSearch input {
+  background: #f0f2f5;
+  color: #050505;
+}
+
+body.facebook-home .topbarSearch input::placeholder {
+  color: #65676b;
+}
+
+body.facebook-home .topbarNavButton,
+body.facebook-home .topbarIconButton,
+body.facebook-home .topbarProfileChip {
+  background: #e4e6eb;
+  color: #050505;
+}
+
+body.facebook-home .facebookHomePage {
+  background: #f0f2f5;
+}
+
+body.facebook-home .facebookHomeLayout {
+  width: min(1440px, calc(100% - 32px));
+  grid-template-columns: 280px minmax(0, 1fr) 320px;
+  justify-content: initial;
+}
+
+body.facebook-home .facebookLeftRail,
+body.facebook-home .facebookRightRail {
+  display: grid;
+}
+
+body.facebook-home .facebookCenterColumn {
+  gap: 16px;
+}
+
+body.facebook-home .facebookComposerCard {
+  order: 1;
+}
+
+body.facebook-home .facebookStoriesPanel {
+  order: 2;
+}
+
+body.facebook-home .facebookFeedStack {
+  order: 3;
+}
+
+body.facebook-home .facebookPanel,
+body.facebook-home .facebookPostCard.socialPostCard,
+body.facebook-home .facebookComposerCard,
+body.facebook-home .facebookStoriesPanel,
+body.facebook-home .facebookStateCard {
+  background: #ffffff;
+  border-color: #dfe3ee;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+body.facebook-home .facebookProfileMini strong,
+body.facebook-home .facebookSectionHeader strong,
+body.facebook-home .facebookShortcutText strong,
+body.facebook-home .facebookStateCard p,
+body.facebook-home .facebookComposerTop textarea,
+body.facebook-home .facebookGroupChatsCard,
+body.facebook-home .facebookCreateGroupButton {
+  color: #050505;
+}
+
+body.facebook-home .facebookProfileMini span,
+body.facebook-home .facebookSidebarNote,
+body.facebook-home .facebookStateCard p,
+body.facebook-home .facebookShortcutText small,
+body.facebook-home .facebookBirthdayCard p {
+  color: #65676b;
+}
+
+.facebookCreateGroupButton {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 8px 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.facebookCreateGroupButton span {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border-radius: 50%;
+  background: #e4e6eb;
+  color: #050505;
+  font-size: 1.75rem;
+  line-height: 1;
+}
+
+@media (max-width: 1280px) {
+  body.facebook-home .facebookRightRail {
+    display: none;
+  }
+
+  body.facebook-home .facebookHomeLayout {
+    grid-template-columns: 280px minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 980px) {
+  body.facebook-home .facebookLeftRail {
+    display: none;
+  }
+
+  body.facebook-home .facebookHomeLayout {
+    grid-template-columns: minmax(0, 1fr);
+    width: min(760px, calc(100% - 24px));
+  }
+}
+
 .passwordInputGroup {
   display: flex;
   align-items: stretch;
