@@ -53,6 +53,20 @@ const getConnectedAuthorIds = async (userId) => {
   return [...new Set(connectedIds)];
 };
 
+const getDiscoveryAuthors = async (connectedAuthorIds) => {
+  // Discovering popular creators should not require an existing follow or
+  // friendship. Use the actual followers array because older accounts may
+  // have a cached followerCount from a prior version of the app.
+  const users = await User.find({ _id: { $nin: connectedAuthorIds } })
+    .select('_id followers createdAt')
+    .lean();
+
+  return users
+    .map((user) => ({ id: String(user._id), followerCount: (user.followers || []).length, createdAt: user.createdAt }))
+    .sort((left, right) => right.followerCount - left.followerCount || new Date(right.createdAt) - new Date(left.createdAt))
+    .slice(0, 18);
+};
+
 exports.createPost = async (userId, { text, media = [], isStory = false, emotionTags = [] }) => {
   const allowedTags = ['funny', 'romantic', 'emotional', 'angry', 'relaxing', 'exciting', 'motivational', 'educational', 'entertainment'];
   const tags = [...new Set((Array.isArray(emotionTags) ? emotionTags : String(emotionTags).split(',')).filter((tag) => allowedTags.includes(tag)))];
@@ -64,7 +78,11 @@ exports.getFeed = async (userId, query = {}) => {
   const page = parseInt(query.page, 10) || 1;
   const limit = parseInt(query.limit, 10) || 12;
   const skip = (page - 1) * limit;
-  const allowedAuthors = await getConnectedAuthorIds(userId);
+  const candidateLimit = Math.min(limit * 4, 48);
+  const connectedAuthors = await getConnectedAuthorIds(userId);
+  const discoveryAuthors = await getDiscoveryAuthors(connectedAuthors);
+  const discoveryFollowerCounts = new Map(discoveryAuthors.map((user) => [user.id, user.followerCount]));
+  const allowedAuthors = [...new Set([...connectedAuthors, ...discoveryAuthors.map((user) => user.id)])];
 
   const posts = await populatePostQuery(
     Post.find()
@@ -72,7 +90,7 @@ exports.getFeed = async (userId, query = {}) => {
       .where('isStory').ne(true)
       .sort({ createdAt: -1 })
       .skip(skip)
-      .limit(limit)
+      .limit(candidateLimit)
   );
 
   const currentUser = await User.findById(userId).select('emotionPreferences').lean();
@@ -84,12 +102,25 @@ exports.getFeed = async (userId, query = {}) => {
       const interestScore = (post.emotionTags || []).reduce((score, tag) => score + Number(preferences[tag] || 0), 0);
       const engagementScore = (post.likes?.length || 0) * 0.5 + (post.comments?.length || 0) * 0.8;
       const freshnessScore = Math.max(0, 24 - ageHours) * 0.15;
-      return { post, recommendationScore: interestScore + engagementScore + freshnessScore };
+      const discoveryFollowerCount = discoveryFollowerCounts.get(String(post.author?._id || post.author)) || 0;
+      const popularityScore = discoveryFollowerCount ? Math.min(8, Math.log10(discoveryFollowerCount + 1) * 2) : 0;
+      return { post, recommendationScore: interestScore + engagementScore + freshnessScore + popularityScore };
     })
     .sort((left, right) => right.recommendationScore - left.recommendationScore)
-    .map(({ post }) => post);
+    .map(({ post }) => post)
+    .slice(0, limit);
 
   return { page, limit, items: rankedPosts };
+};
+
+exports.getPostsForAuthor = async (userId, query = {}) => {
+  const limit = Math.min(Math.max(parseInt(query.limit, 10) || 24, 1), 48);
+  const posts = await populatePostQuery(
+    Post.find({ author: userId, isStory: { $ne: true } })
+      .sort({ createdAt: -1 })
+      .limit(limit)
+  );
+  return { items: posts };
 };
 
 exports.trackInterest = async (postId, userId, action) => {

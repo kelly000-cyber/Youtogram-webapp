@@ -9,6 +9,8 @@ const { getDialCode } = require('../utils/countries');
 
 const normalizePhone = (value = '') => String(value).replace(/[^\d+]/g, '').trim();
 const passwordRule = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{10,}$/;
+const profileImagePattern = /^(?:data:image\/(?:jpeg|jpg|png|webp|gif);base64,|https:\/\/)/i;
+const maxProfileImageLength = 1800000;
 
 const getGoogleClient = () => process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
   ? new OAuth2Client(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET, process.env.GOOGLE_REDIRECT_URI)
@@ -17,6 +19,20 @@ const getGoogleClient = () => process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE
 const validateStrongPassword = (password) => {
   if (!passwordRule.test(String(password || ''))) {
     const error = new Error('Password must be at least 10 characters and include 1 uppercase letter, 1 lowercase letter, 1 number, and 1 symbol.');
+    error.status = 400;
+    throw error;
+  }
+};
+
+const validateProfileImage = (value, label) => {
+  if (typeof value === 'undefined' || value === '') return;
+  if (typeof value !== 'string' || !profileImagePattern.test(value)) {
+    const error = new Error(`${label} must be a JPG, PNG, WebP, GIF, or HTTPS image.`);
+    error.status = 400;
+    throw error;
+  }
+  if (value.length > maxProfileImageLength) {
+    const error = new Error(`${label} is too large. Please choose an image under 1.2 MB.`);
     error.status = 400;
     throw error;
   }
@@ -189,7 +205,7 @@ exports.getProfile = async (userId) => {
     throw error;
   }
 
-  user.followerCount = Math.max(user.followerCount || 0, user.followers?.length || 0, 1000);
+  user.followerCount = user.followers?.length || 0;
   if (user.isModified('followerCount')) {
     await user.save();
   }
@@ -219,7 +235,7 @@ exports.followUser = async (userId, targetUserId) => {
   if (!isFollowing) {
     currentUser.following.push(targetUserId);
     targetUser.followers.push(userId);
-    targetUser.followerCount = Math.max(targetUser.followerCount || 0, targetUser.followers.length, 1000);
+    targetUser.followerCount = targetUser.followers.length;
     await Promise.all([currentUser.save(), targetUser.save()]);
     await notificationService.createNotification(
       targetUserId,
@@ -258,7 +274,7 @@ exports.unfollowUser = async (userId, targetUserId) => {
 
   currentUser.following = currentUser.following.filter((id) => String(id) !== String(targetUserId));
   targetUser.followers = targetUser.followers.filter((id) => String(id) !== String(userId));
-  targetUser.followerCount = Math.max(targetUser.followers.length, 1000);
+  targetUser.followerCount = targetUser.followers.length;
 
   await Promise.all([currentUser.save(), targetUser.save()]);
 
@@ -270,7 +286,7 @@ exports.unfollowUser = async (userId, targetUserId) => {
 };
 
 exports.updateProfile = async (userId, updates) => {
-  const { currentPassword, newPassword, email, phone, phoneCountryCode, country, bio, avatar } = updates;
+  const { currentPassword, newPassword, email, phone, phoneCountryCode, country, bio, avatar, coverPhoto, location, website } = updates;
   const user = await User.findById(userId);
   if (!user) {
     const error = new Error('User not found');
@@ -332,7 +348,33 @@ exports.updateProfile = async (userId, updates) => {
   }
 
   if (typeof avatar !== 'undefined') {
+    validateProfileImage(avatar, 'Profile picture');
     user.avatar = avatar;
+  }
+
+  if (typeof coverPhoto !== 'undefined') {
+    validateProfileImage(coverPhoto, 'Cover photo');
+    user.coverPhoto = coverPhoto;
+  }
+
+  if (typeof bio !== 'undefined' && String(bio).length > 280) {
+    const error = new Error('Bio must be 280 characters or fewer.');
+    error.status = 400;
+    throw error;
+  }
+
+  if (typeof location !== 'undefined') {
+    user.location = String(location || '').trim().slice(0, 80);
+  }
+
+  if (typeof website !== 'undefined') {
+    const cleanWebsite = String(website || '').trim();
+    if (cleanWebsite && !/^https:\/\//i.test(cleanWebsite)) {
+      const error = new Error('Website must start with https://');
+      error.status = 400;
+      throw error;
+    }
+    user.website = cleanWebsite;
   }
 
   await user.save();
@@ -367,9 +409,40 @@ exports.listUsers = async (userId) => {
       isFollowing,
       isFollowedBy,
       mutualFriends,
-      followerCount: user.followerCount || (user.followers || []).length
+      followerCount: (user.followers || []).length
     };
   });
+};
+
+exports.getUserProfile = async (viewerId, targetUserId) => {
+  const [viewer, target] = await Promise.all([
+    User.findById(viewerId).select('following friends'),
+    User.findById(targetUserId).select('username avatar coverPhoto bio country location website createdAt followers following friends')
+  ]);
+
+  if (!viewer || !target) {
+    const error = new Error('User not found');
+    error.status = 404;
+    throw error;
+  }
+
+  const targetId = String(target._id);
+  return {
+    _id: target._id,
+    username: target.username,
+    avatar: target.avatar,
+    coverPhoto: target.coverPhoto,
+    bio: target.bio,
+    country: target.country,
+    location: target.location,
+    website: target.website,
+    createdAt: target.createdAt,
+    followerCount: (target.followers || []).length,
+    followingCount: (target.following || []).length,
+    friendCount: (target.friends || []).length,
+    isFollowing: (viewer.following || []).some((id) => String(id) === targetId),
+    isFriend: (viewer.friends || []).some((id) => String(id) === targetId)
+  };
 };
 
 exports.sendFriendRequest = async (userId, targetUserId) => {

@@ -2,6 +2,8 @@ import { fetcher } from './api';
 
 export const postService = {
   feed: (query = '') => fetcher(`/posts${query ? `?${query}` : ''}`),
+  mine: () => fetcher('/posts/mine'),
+  byUser: (userId) => fetcher(`/posts/user/${userId}`),
   create: (payload) => fetcher('/posts', {
     method: 'POST',
     body: payload instanceof FormData ? payload : JSON.stringify(payload),

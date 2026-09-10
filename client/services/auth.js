@@ -23,6 +23,7 @@ export const authService = {
   }),
   me: () => fetcher('/auth/me'),
   users: () => fetcher('/auth/users'),
+  getUserProfile: (userId) => fetcher(`/auth/users/${userId}`),
   followUser: (userId) => fetcher(`/auth/follow/${userId}`, {
     method: 'POST'
   }),

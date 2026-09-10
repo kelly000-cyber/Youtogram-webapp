@@ -12,6 +12,7 @@ router.post('/reset-password', authController.resetPassword);
 router.get('/me', authMiddleware, authController.getProfile);
 router.patch('/me', authMiddleware, authController.updateProfile);
 router.get('/users', authMiddleware, authController.listUsers);
+router.get('/users/:id', authMiddleware, authController.getUserProfile);
 router.post('/follow/:id', authMiddleware, authController.followUser);
 router.delete('/follow/:id', authMiddleware, authController.unfollowUser);
 router.post('/friends/:id', authMiddleware, authController.sendFriendRequest);

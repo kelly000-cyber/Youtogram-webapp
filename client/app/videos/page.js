@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { videoService } from '../../services/videos';
 import styles from './videos.module.css';
@@ -8,6 +8,55 @@ import styles from './videos.module.css';
 function formatCount(value = 0) {
   if (value >= 1000) return `${(value / 1000).toFixed(1).replace('.0', '')}K`;
   return `${value}`;
+}
+
+function AutoPlayReel({ video, styles }) {
+  const videoRef = useRef(null);
+  const [muted, setMuted] = useState(true);
+
+  useEffect(() => {
+    const media = videoRef.current;
+    if (!media) return undefined;
+
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        // Browsers only permit automatic playback when a video starts muted.
+        // The sound control below lets viewers opt in without interruption.
+        media.play().catch(() => {});
+      } else {
+        media.pause();
+      }
+    }, { threshold: 0.7 });
+
+    observer.observe(media);
+    return () => observer.disconnect();
+  }, []);
+
+  const enableSound = () => {
+    const media = videoRef.current;
+    if (!media) return;
+    media.muted = false;
+    setMuted(false);
+    media.play().catch(() => {});
+  };
+
+  return (
+    <>
+      <video
+        ref={videoRef}
+        className={styles.media}
+        src={video.url}
+        poster={video.thumbnail || undefined}
+        controls
+        muted={muted}
+        playsInline
+        loop
+        preload="metadata"
+        onVolumeChange={(event) => setMuted(event.currentTarget.muted || event.currentTarget.volume === 0)}
+      />
+      {muted ? <button type="button" className={styles.soundButton} onClick={enableSound}>Sound on</button> : null}
+    </>
+  );
 }
 
 export default function VideosPage() {
@@ -146,14 +195,7 @@ export default function VideosPage() {
         <section className={styles.stack}>
           {videos.map((video) => (
             <article key={video._id} className={styles.card}>
-              <video
-                className={styles.media}
-                src={video.url}
-                poster={video.thumbnail || undefined}
-                controls
-                playsInline
-                loop
-              />
+              <AutoPlayReel video={video} styles={styles} />
               <div className={styles.overlay}>
                 <div className={styles.meta}>
                   <strong>@{video.author?.username || 'youtogram'}</strong>
@@ -186,7 +228,7 @@ export default function VideosPage() {
               <span>{uploadFile ? uploadFile.name : 'Choose a video from your device'}</span>
               <input type="file" accept="video/*" onChange={handleVideoFileChange} />
             </label>
-            {uploadPreview ? <video className={styles.uploadPreview} src={uploadPreview} controls muted playsInline /> : null}
+            {uploadPreview ? <video className={styles.uploadPreview} src={uploadPreview} controls playsInline /> : null}
             <input value={uploadTitle} onChange={(event) => setUploadTitle(event.target.value)} placeholder="Video title" maxLength={120} required />
             <textarea value={uploadDescription} onChange={(event) => setUploadDescription(event.target.value)} placeholder="Add a description" maxLength={500} rows={3} />
             <button type="submit" className={styles.publishButton} disabled={uploading}>{uploading ? 'Uploading...' : 'Publish video'}</button>

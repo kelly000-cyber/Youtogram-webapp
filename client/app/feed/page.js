@@ -460,7 +460,7 @@ export default function FeedPage() {
               {composer.mediaPreview ? (
                 <div className="facebookComposerPreview">
                   {composer.mediaType === 'video' ? (
-                    <video src={composer.mediaPreview} controls muted playsInline />
+                    <video src={composer.mediaPreview} controls playsInline />
                   ) : (
                     <img src={composer.mediaPreview} alt="Selected upload preview" />
                   )}

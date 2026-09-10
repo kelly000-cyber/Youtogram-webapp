@@ -25,6 +25,24 @@ exports.getFeed = async (req, res, next) => {
   }
 };
 
+exports.getMyPosts = async (req, res, next) => {
+  try {
+    const posts = await postService.getPostsForAuthor(req.user.id, req.query);
+    res.json({ status: 'success', data: posts });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.getUserPosts = async (req, res, next) => {
+  try {
+    const posts = await postService.getPostsForAuthor(req.params.userId, req.query);
+    res.json({ status: 'success', data: posts });
+  } catch (error) {
+    next(error);
+  }
+};
+
 exports.toggleLike = async (req, res, next) => {
   try {
     const post = await postService.toggleLike(req.params.id, req.user.id);

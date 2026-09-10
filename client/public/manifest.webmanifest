@@ -1,0 +1,16 @@
+{
+  "name": "YOUTOGRAM",
+  "short_name": "YOUTOGRAM",
+  "description": "A video-first social platform for people, culture, and opportunity.",
+  "icons": [
+    {
+      "src": "/youtogram.jpg?v=20260910",
+      "sizes": "1080x1080",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ],
+  "theme_color": "#17d8ff",
+  "background_color": "#04030f",
+  "display": "standalone"
+}

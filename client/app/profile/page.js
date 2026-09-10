@@ -1,13 +1,32 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { authService } from '../../services/auth';
+import { postService } from '../../services/posts';
+import PostCard from '../../components/PostCard';
+
+const IMAGE_TYPES = 'image/jpeg,image/png,image/webp,image/gif';
+const MAX_AVATAR_BYTES = 850 * 1024;
+const MAX_COVER_BYTES = 1200 * 1024;
+
+function initials(name = 'Youtogram User') {
+  return name.split(' ').filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase()).join('') || 'Y';
+}
+
+function makeProfileForm(profile) {
+  return {
+    email: profile.email || '', phone: profile.phone || '', country: profile.country || '', location: profile.location || '',
+    website: profile.website || '', bio: profile.bio || '', avatar: profile.avatar || '', coverPhoto: profile.coverPhoto || ''
+  };
+}
 
 export default function ProfilePage() {
   const router = useRouter();
   const [profile, setProfile] = useState(null);
-  const [form, setForm] = useState({ email: '', phone: '', country: '', bio: '', avatar: '' });
+  const [form, setForm] = useState({ email: '', phone: '', country: '', location: '', website: '', bio: '', avatar: '', coverPhoto: '' });
+  const [profilePosts, setProfilePosts] = useState([]);
+  const [activeTab, setActiveTab] = useState('posts');
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [theme, setTheme] = useState('dark');
@@ -15,6 +34,8 @@ export default function ProfilePage() {
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
   const [avatarFileName, setAvatarFileName] = useState('');
+  const [coverFileName, setCoverFileName] = useState('');
+  const [activePhoto, setActivePhoto] = useState(null);
 
   useEffect(() => {
     const selectedTheme = window.localStorage.getItem('youtogram_theme') || 'dark';
@@ -24,63 +45,61 @@ export default function ProfilePage() {
   }, []);
 
   useEffect(() => {
-    authService.me()
-      .then((response) => {
-        const profileData = response.data;
-        setProfile(profileData);
-        setForm({
-          email: profileData.email || '',
-          phone: profileData.phone || '',
-          country: profileData.country || '',
-          bio: profileData.bio || '',
-          avatar: profileData.avatar || ''
-        });
-      })
-      .catch((loadError) => {
+    let active = true;
+    const loadProfile = async () => {
+      try {
+        const [profileResponse, postsResponse] = await Promise.all([authService.me(), postService.mine()]);
+        if (!active) return;
+        setProfile(profileResponse.data);
+        setForm(makeProfileForm(profileResponse.data));
+        setProfilePosts(postsResponse.data?.items || []);
+      } catch (loadError) {
+        if (!active) return;
         if (loadError.message === 'Invalid token' || loadError.message === 'Authorization token required') {
           localStorage.removeItem('youtogram_token');
           router.replace('/');
           return;
         }
+        setError(loadError.message || 'Unable to load your profile.');
+      }
+    };
 
-        setError(loadError.message || 'Unable to load profile.');
-      });
+    loadProfile();
+    return () => { active = false; };
   }, [router]);
+
+  const photos = useMemo(() => profilePosts.flatMap((post) =>
+    (post.media || []).filter((media) => media.type === 'image' && media.url).map((media) => ({ ...media, post }))
+  ), [profilePosts]);
 
   const handleThemeChange = (mode) => {
     setTheme(mode);
-    if (typeof document !== 'undefined') {
-      document.body.classList.toggle('light-theme', mode === 'light');
-      document.documentElement.classList.toggle('light-theme', mode === 'light');
-      window.localStorage.setItem('youtogram_theme', mode);
-      window.dispatchEvent(new CustomEvent('youtogram:themeChange', { detail: { theme: mode } }));
-    }
+    document.body.classList.toggle('light-theme', mode === 'light');
+    document.documentElement.classList.toggle('light-theme', mode === 'light');
+    window.localStorage.setItem('youtogram_theme', mode);
+    window.dispatchEvent(new CustomEvent('youtogram:themeChange', { detail: { theme: mode } }));
   };
 
-  const handleChange = (event) => {
-    setForm((current) => ({ ...current, [event.target.name]: event.target.value }));
-  };
+  const handleChange = (event) => setForm((current) => ({ ...current, [event.target.name]: event.target.value }));
 
-  const handleAvatarFileChange = (event) => {
+  const handleImageChange = (event, field, maxBytes, setFileName, label) => {
     const file = event.target.files?.[0];
     if (!file) return;
-
     if (!file.type.startsWith('image/')) {
       setError('Please choose an image file.');
       event.target.value = '';
       return;
     }
-
-    if (file.size > 1024 * 1024) {
-      setError('Profile pictures must be 1 MB or smaller.');
+    if (file.size > maxBytes) {
+      setError(`${label} must be ${Math.floor(maxBytes / 1024)} KB or smaller.`);
       event.target.value = '';
       return;
     }
 
     const reader = new FileReader();
     reader.onload = () => {
-      setForm((current) => ({ ...current, avatar: String(reader.result || '') }));
-      setAvatarFileName(file.name);
+      setForm((current) => ({ ...current, [field]: String(reader.result || '') }));
+      setFileName(file.name);
       setError('');
     };
     reader.onerror = () => setError('Unable to read that image. Please try another file.');
@@ -95,16 +114,13 @@ export default function ProfilePage() {
 
     try {
       const response = await authService.updateProfile({
-        email: form.email,
-        phone: form.phone,
-        country: form.country,
-        bio: form.bio,
-        avatar: form.avatar,
+        ...form,
         currentPassword: currentPassword.trim() || undefined,
         newPassword: newPassword.trim() || undefined
       });
       setProfile(response.data);
-      setMessage('Profile updated successfully.');
+      setForm(makeProfileForm(response.data));
+      setMessage('Your profile changes are live.');
       setCurrentPassword('');
       setNewPassword('');
     } catch (updateError) {
@@ -114,226 +130,146 @@ export default function ProfilePage() {
     }
   };
 
-  const handlePurchaseVerified = async () => {
-    setError('');
-    setMessage('');
-    if (!profile) return;
-    if ((profile.points || 0) < 1000) {
-      setError('You need at least 1000 points to purchase verification.');
-      return;
-    }
-
+  const handleToggleLike = async (postId) => {
     try {
-      // Try calling dedicated purchase endpoint first
-      try {
-        const response = await authService.purchaseVerification();
-        setProfile(response.data);
-        setMessage('Verification purchased. Congratulations!');
-        return;
-      } catch (purchaseErr) {
-        // Fallback: mark verified via profile update and deduct points locally
-      }
+      const response = await postService.toggleLike(postId);
+      setProfilePosts((items) => items.map((post) => post._id === postId ? response.data : post));
+    } catch (likeError) {
+      setError(likeError.message || 'Unable to update this reaction.');
+    }
+  };
 
-      const patched = await authService.updateProfile({ verified: true });
-      // optimistic local deduction of points if backend didn't handle it
-      const updated = { ...patched.data, points: (patched.data.points ?? profile.points) - 1000 };
-      setProfile(updated);
-      setMessage('Verification purchased (fallback).');
-    } catch (err) {
-      setError(err.message || 'Unable to complete verification purchase.');
+  const handleAddComment = async (postId, text) => {
+    try {
+      const response = await postService.addComment(postId, { text });
+      setProfilePosts((items) => items.map((post) => post._id === postId ? response.data : post));
+    } catch (commentError) {
+      setError(commentError.message || 'Unable to add your comment.');
+    }
+  };
+
+  const handleShare = async (postId) => {
+    try {
+      await navigator.clipboard.writeText(`${window.location.origin}/feed?post=${postId}`);
+      setMessage('Post link copied to your clipboard.');
+    } catch {
+      setError('Unable to copy the post link.');
     }
   };
 
   const handleLogout = () => {
     authService.logout();
-    if (typeof window !== 'undefined') {
-      window.sessionStorage.clear();
-      window.localStorage.removeItem('youtogram_token');
-      window.history.replaceState(null, '', '/');
-      window.history.pushState(null, '', '/');
-      window.addEventListener('popstate', () => {
-        if (!localStorage.getItem('youtogram_token')) {
-          window.location.replace('/');
-        }
-      });
-    }
+    window.sessionStorage.clear();
+    localStorage.removeItem('youtogram_token');
     router.replace('/');
   };
 
-  const updatePasswordWarning = newPassword ? 'You will need current password to save your new password.' : '';
+  if (!profile) return <main className="profilePlaceholder"><p>{error || 'Loading profile...'}</p></main>;
+
+  const joinedDate = profile.createdAt ? new Date(profile.createdAt).toLocaleDateString(undefined, { month: 'long', year: 'numeric' }) : 'Recently';
+  const coverPhoto = form.coverPhoto || profile.coverPhoto;
+  const avatar = form.avatar || profile.avatar;
 
   return (
-    <main className="profilePage profileAccountPage">
-      {profile ? (
-        <>
-          <section className="profileHeroCard">
-            <div className="profileHeroTop">
-              <div className="profileAvatarShell">
-                <div className="profileAvatarPreview profileAvatarCircle">
-                  {profile.avatar ? <img src={profile.avatar} alt="Profile avatar" /> : profile.username?.slice(0, 2).toUpperCase()}
-                </div>
-              </div>
-
-              <div className="profileHeroMeta">
-                <div className="profileHeroTitleRow">
-                  <div>
-                    <p className="profileTag">Personal profile</p>
-                    <h1>{profile.username || 'Your profile'}</h1>
-                    <p className="profileHandle">@{(profile.username || 'youtogram user').toLowerCase().replace(/\s+/g, '')}</p>
-                  </div>
-                  <div className="themeSwitcher">
-                    <span>{theme === 'dark' ? 'Dark theme' : 'Light theme'}</span>
-                    <button
-                      type="button"
-                      className="profileThemeButton"
-                      onClick={() => handleThemeChange(theme === 'dark' ? 'light' : 'dark')}
-                    >
-                      {theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-                    </button>
-                  </div>
-                </div>
-
-                <p className="profileBioText profileBioHero">{profile.bio || 'Share a short bio to make your profile feel complete.'}</p>
-
-                <div className="profileHeroStats">
-                  <div>
-                    <strong>{profile.points ?? 0}</strong>
-                    <span>Points</span>
-                  </div>
-                  <div>
-                    <strong>{profile.followerCount ?? 0}</strong>
-                    <span>Followers</span>
-                  </div>
-                  <div>
-                    <strong>{(profile.following || []).length}</strong>
-                    <span>Following</span>
-                  </div>
-                  <div>
-                    <strong>{(profile.friends || []).length}</strong>
-                    <span>Friends</span>
-                  </div>
-                </div>
-
-                <div className="profileHeroActions">
-                  <button type="button" className="profilePrimaryButton" onClick={() => document.getElementById('profile-edit-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>
-                    Edit profile
-                  </button>
-                  <button type="button" className="profileSecondaryButton" onClick={() => router.push('/feed')}>
-                    Back to feed
-                  </button>
-                  <button type="button" className="profileDangerButton" onClick={handleLogout}>
-                    <svg viewBox="0 0 24 24" aria-hidden="true" className="profileDangerButtonIcon">
-                      <path d="M16 17l5-5-5-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                      <path d="M9 19H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                    Sign out
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div className="profileHeroTabs">
-              <button type="button" className="profileTabButton active">Posts</button>
-              <button type="button" className="profileTabButton">Saved</button>
-              <button type="button" className="profileTabButton">Tagged</button>
-            </div>
-          </section>
-
-          <section className="profileContentGrid">
-            <aside className="profileSideRail">
-              <div className="profileCompactCard">
-                <div className="profileInfoBlock">
-                  <div>
-                    <strong>Role</strong>
-                    <span>{profile.role || 'user'}</span>
-                  </div>
-                  <div>
-                    <strong>Country</strong>
-                    <span>{profile.country || 'Not set'}</span>
-                  </div>
-                  <div>
-                    <strong>Joined</strong>
-                    <span>{new Date(profile.createdAt).toLocaleDateString()}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="profileCompactCard">
-                <h2>Bio</h2>
-                <p className="profileBioText">{profile.bio || 'No bio added yet.'}</p>
-              </div>
-            </aside>
-
-            <section className="profileEditPanel profileCompactCard" id="profile-edit-panel">
-              <div className="profilePanelHeader">
-                <div>
-                  <h2>Edit profile</h2>
-                  <p>Keep the important stuff current without losing the clean profile layout.</p>
-                </div>
-                <div style={{display:'flex',alignItems:'center',gap:8}}>
-                  <span className="profileBadge">{profile.verified ? 'Verified' : 'Not verified'}</span>
-                  {profile.verified ? null : (
-                    <button type="button" className="profilePrimaryButton" onClick={handlePurchaseVerified}>
-                      Purchase verification (1000 pts)
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {message ? <p className="profileSuccessBanner">{message}</p> : null}
-              {error ? <p className="profileErrorBanner">{error}</p> : null}
-
-              <form className="profileForm" onSubmit={handleSubmit}>
-                <div className="profileField">
-                  <label>Email address</label>
-                  <input name="email" type="email" value={form.email} onChange={handleChange} required />
-                </div>
-                <div className="profileField">
-                  <label>Phone number</label>
-                  <input name="phone" type="tel" value={form.phone} onChange={handleChange} required />
-                </div>
-                <div className="profileField">
-                  <label>Country</label>
-                  <input name="country" type="text" value={form.country} onChange={handleChange} placeholder="Country" />
-                </div>
-                <div className="profileField">
-                  <label htmlFor="profile-avatar-file">Profile picture</label>
-                  <div className="profilePicturePicker">
-                    <div className="profilePicturePickerPreview">
-                      {form.avatar ? <img src={form.avatar} alt="Selected profile preview" /> : profile.username?.slice(0, 2).toUpperCase()}
-                    </div>
-                    <div>
-                      <input id="profile-avatar-file" type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={handleAvatarFileChange} />
-                      <small className="profileNote">JPG, PNG, WebP, or GIF up to 1 MB. {avatarFileName || 'Choose an image to update your picture.'}</small>
-                    </div>
-                  </div>
-                </div>
-                <div className="profileField profileFieldFull">
-                  <label>Bio</label>
-                  <textarea name="bio" value={form.bio} onChange={handleChange} rows={4} placeholder="Tell people what you do."></textarea>
-                </div>
-                <div className="profileField">
-                  <label>Current password</label>
-                  <input name="currentPassword" type="password" value={currentPassword} onChange={(event) => setCurrentPassword(event.target.value)} placeholder="Required for secure updates" />
-                </div>
-                <div className="profileField">
-                  <label>New password</label>
-                  <input name="newPassword" type="password" value={newPassword} onChange={(event) => setNewPassword(event.target.value)} placeholder="Leave empty to keep existing password" />
-                  {updatePasswordWarning ? <small className="profileNote">{updatePasswordWarning}</small> : null}
-                </div>
-                <div className="profileFormFooter profileFieldFull">
-                  <button type="submit" className="submitButton" disabled={saving}>{saving ? 'Saving...' : 'Save changes'}</button>
-                  <button type="button" className="profileSecondaryButton" onClick={() => router.push('/feed')}>Return to feed</button>
-                </div>
-              </form>
-            </section>
-          </section>
-        </>
-      ) : (
-        <div className="profilePlaceholder">
-          <p>Loading profile...</p>
+    <main className="profilePage profileAccountPage profileFacebookPage">
+      <section className="profileHeroCard profileFacebookHero">
+        <div className="profileCoverPhoto">
+          {coverPhoto ? <img src={coverPhoto} alt="Your profile cover" /> : <div className="profileCoverFallback" aria-hidden="true" />}
+          <label className="profilePhotoAction profileCoverAction">
+            <input type="file" accept={IMAGE_TYPES} onChange={(event) => handleImageChange(event, 'coverPhoto', MAX_COVER_BYTES, setCoverFileName, 'Cover photo')} />
+            <span>Change cover</span>
+          </label>
         </div>
-      )}
+
+        <div className="profileFacebookIdentity">
+          <div className="profileAvatarShell profileFacebookAvatarShell">
+            <div className="profileAvatarPreview profileAvatarCircle">{avatar ? <img src={avatar} alt="Profile avatar" /> : initials(profile.username)}</div>
+            <label className="profileAvatarEditButton" title="Change profile picture">
+              <input type="file" accept={IMAGE_TYPES} onChange={(event) => handleImageChange(event, 'avatar', MAX_AVATAR_BYTES, setAvatarFileName, 'Profile picture')} />
+              <span aria-hidden="true">+</span><span className="srOnly">Change profile picture</span>
+            </label>
+          </div>
+          <div className="profileFacebookTitle">
+            <div>
+              <div className="profileNameRow"><h1>{profile.username || 'Your profile'}</h1>{profile.verified ? <span className="profileVerifiedMark" title="Verified account">✓</span> : null}</div>
+              <p className="profileConnectionLine">{profile.followerCount ?? 0} followers · {(profile.friends || []).length} friends</p>
+            </div>
+            <div className="profileHeroActions">
+              <button type="button" className="profilePrimaryButton" onClick={() => document.getElementById('profile-edit-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>Edit profile</button>
+              <button type="button" className="profileSecondaryButton" onClick={() => router.push('/feed')}>Create post</button>
+            </div>
+          </div>
+        </div>
+
+        <div className="profileHeroTabs" role="tablist" aria-label="Profile sections">
+          {['posts', 'photos', 'about'].map((tab) => <button key={tab} type="button" role="tab" aria-selected={activeTab === tab} className={`profileTabButton ${activeTab === tab ? 'active' : ''}`} onClick={() => setActiveTab(tab)}>{tab.charAt(0).toUpperCase() + tab.slice(1)}</button>)}
+        </div>
+      </section>
+
+      {message ? <p className="profileSuccessBanner" role="status">{message}</p> : null}
+      {error ? <p className="profileErrorBanner" role="alert">{error}</p> : null}
+
+      <section className="profileContentGrid profileFacebookContent">
+        <aside className="profileSideRail">
+          <section className="profileCompactCard profileIntroCard">
+            <h2>Intro</h2>
+            <p className="profileBioText">{profile.bio || 'Add a bio so your community can get to know you.'}</p>
+            <div className="profileIntroRows">
+              {profile.location ? <span>Lives in {profile.location}</span> : null}
+              {profile.country ? <span>From {profile.country}</span> : null}
+              {profile.website ? <a href={profile.website} target="_blank" rel="noreferrer">Visit website</a> : null}
+              <span>Joined {joinedDate}</span>
+            </div>
+            <button type="button" className="profileIntroEditButton" onClick={() => document.getElementById('profile-edit-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>Edit details</button>
+          </section>
+
+          <section className="profileCompactCard">
+            <h2>Community</h2>
+            <div className="profileCommunityStats"><span><strong>{profile.followerCount ?? 0}</strong> Followers</span><span><strong>{(profile.following || []).length}</strong> Following</span><span><strong>{(profile.friends || []).length}</strong> Friends</span></div>
+          </section>
+
+          <section className="profileCompactCard profileThemeCard">
+            <span>{theme === 'dark' ? 'Dark theme' : 'Light theme'}</span>
+            <button type="button" className="profileThemeButton" onClick={() => handleThemeChange(theme === 'dark' ? 'light' : 'dark')}>Switch to {theme === 'dark' ? 'light' : 'dark'} mode</button>
+          </section>
+        </aside>
+
+        <section className="profileMainColumn">
+          {activeTab === 'posts' ? <>
+            <section className="profileCompactCard profilePostPrompt"><div className="profilePostPromptAvatar">{avatar ? <img src={avatar} alt="" /> : initials(profile.username)}</div><button type="button" onClick={() => router.push('/feed')}>What&apos;s on your mind, {profile.username}?</button></section>
+            {profilePosts.length ? <div className="profilePostsStack">{profilePosts.map((post) => <PostCard key={post._id} post={post} currentUserId={profile._id} onToggleLike={handleToggleLike} onAddComment={handleAddComment} onShare={handleShare} />)}</div> : <section className="profileCompactCard profileEmptyState"><h2>No posts yet</h2><p>Share your first update, photo, or video with your community.</p><button type="button" className="profilePrimaryButton" onClick={() => router.push('/feed')}>Create a post</button></section>}
+          </> : null}
+
+          {activeTab === 'photos' ? <section className="profileCompactCard">
+            <div className="profilePanelHeader"><div><h2>Photos</h2><p>Photos you have shared in your posts.</p></div><span className="profilePhotoCount">{photos.length} photos</span></div>
+            {photos.length ? <div className="profilePhotoGrid">{photos.map((photo, index) => <button type="button" key={`${photo.url}-${index}`} onClick={() => setActivePhoto(photo)}><img src={photo.url} alt={photo.post.text || 'Profile photo'} /></button>)}</div> : <div className="profileEmptyState"><p>Your shared photos will appear here.</p><button type="button" className="profilePrimaryButton" onClick={() => router.push('/feed')}>Share a photo</button></div>}
+          </section> : null}
+
+          {activeTab === 'about' ? <section className="profileCompactCard profileAboutCard">
+            <div className="profilePanelHeader"><div><h2>About</h2><p>Manage the details your community sees.</p></div></div>
+            <div className="profileAboutGrid"><div><span>Bio</span><strong>{profile.bio || 'Not added yet'}</strong></div><div><span>Location</span><strong>{profile.location || profile.country || 'Not added yet'}</strong></div><div><span>Website</span>{profile.website ? <a href={profile.website} target="_blank" rel="noreferrer">{profile.website}</a> : <strong>Not added yet</strong>}</div><div><span>Joined</span><strong>{joinedDate}</strong></div></div>
+          </section> : null}
+
+          <section className="profileEditPanel profileCompactCard" id="profile-edit-panel">
+            <div className="profilePanelHeader"><div><h2>Customize your profile</h2><p>Update your photos and details in one place.</p></div><span className="profileBadge">{profile.verified ? 'Verified' : 'Youtogram member'}</span></div>
+            <form className="profileForm" onSubmit={handleSubmit}>
+              <div className="profileField"><label>Email address</label><input name="email" type="email" value={form.email} onChange={handleChange} required /></div>
+              <div className="profileField"><label>Phone number</label><input name="phone" type="tel" value={form.phone} onChange={handleChange} required /></div>
+              <div className="profileField"><label>Country</label><input name="country" value={form.country} onChange={handleChange} placeholder="Country" /></div>
+              <div className="profileField"><label>Current city</label><input name="location" value={form.location} onChange={handleChange} placeholder="City, region" maxLength={80} /></div>
+              <div className="profileField profileFieldFull"><label>Website</label><input name="website" type="url" value={form.website} onChange={handleChange} placeholder="https://yourwebsite.com" /></div>
+              <div className="profileField profileFieldFull"><label>Bio</label><textarea name="bio" value={form.bio} onChange={handleChange} rows={4} maxLength={280} placeholder="Tell people a little about yourself." /><small className="profileNote">{form.bio.length}/280</small></div>
+              <div className="profileField"><label>Profile picture</label><small className="profileNote">{avatarFileName || 'JPG, PNG, WebP, or GIF up to 850 KB.'}</small></div>
+              <div className="profileField"><label>Cover photo</label><small className="profileNote">{coverFileName || 'JPG, PNG, WebP, or GIF up to 1.2 MB.'}</small></div>
+              <div className="profileField"><label>Current password</label><input type="password" value={currentPassword} onChange={(event) => setCurrentPassword(event.target.value)} placeholder="Only needed for email, phone, or password changes" /></div>
+              <div className="profileField"><label>New password</label><input type="password" value={newPassword} onChange={(event) => setNewPassword(event.target.value)} placeholder="Leave blank to keep current password" /></div>
+              <div className="profileFormFooter profileFieldFull"><button type="submit" className="submitButton" disabled={saving}>{saving ? 'Saving...' : 'Save profile'}</button><button type="button" className="profileSecondaryButton" onClick={handleLogout}>Sign out</button></div>
+            </form>
+          </section>
+        </section>
+      </section>
+
+      {activePhoto ? <div className="profilePhotoLightbox" role="dialog" aria-modal="true" aria-label="Photo preview" onClick={() => setActivePhoto(null)}><button type="button" className="profilePhotoLightboxClose" onClick={() => setActivePhoto(null)} aria-label="Close photo">×</button><img src={activePhoto.url} alt={activePhoto.post.text || 'Profile photo'} onClick={(event) => event.stopPropagation()} /></div> : null}
     </main>
   );
 }

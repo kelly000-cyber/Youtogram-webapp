@@ -3,6 +3,11 @@
 import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { searchService } from '../../services/search';
+import { authService } from '../../services/auth';
+
+function initials(name = 'Youtogram User') {
+  return name.split(' ').filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase()).join('') || 'Y';
+}
 
 function SearchContent() {
   const searchParams = useSearchParams();
@@ -50,6 +55,23 @@ function SearchContent() {
     };
   }, [searchTerm]);
 
+  const handleToggleFollow = async (event, user) => {
+    event.stopPropagation();
+    try {
+      const response = user.isFollowing
+        ? await authService.unfollowUser(user._id)
+        : await authService.followUser(user._id);
+      setResults((current) => ({
+        ...current,
+        users: current.users.map((item) => item._id === user._id
+          ? { ...item, isFollowing: !item.isFollowing, followerCount: response.data.followerCount }
+          : item)
+      }));
+    } catch (followError) {
+      setError(followError.message || 'Unable to update follow status.');
+    }
+  };
+
   return (
     <main className="searchPage">
       <section className="searchPageShell">
@@ -84,10 +106,15 @@ function SearchContent() {
               {results.users.length ? (
                 <div className="searchResultList">
                   {results.users.map((user) => (
-                    <div key={user._id} className="searchResultItem">
-                      <strong>{user.username}</strong>
-                      <p>{user.bio || user.country || 'No bio available'}</p>
-                    </div>
+                    <article key={user._id} className="searchResultItem searchUserResult">
+                      <button type="button" className="searchUserIdentity" onClick={() => router.push(`/profile/${user._id}`)} aria-label={`View ${user.username}'s profile`}>
+                        <span className="searchUserAvatar">{user.avatar ? <img src={user.avatar} alt="" /> : initials(user.username)}</span>
+                        <span><strong>{user.username}</strong><small>{user.followerCount ?? 0} followers{user.isFriend ? ' · Friends' : ''}</small><p>{user.bio || user.country || 'View profile'}</p></span>
+                      </button>
+                      <button type="button" className={`searchFollowButton ${user.isFollowing ? 'searchFollowingButton' : ''}`} onClick={(event) => handleToggleFollow(event, user)}>
+                        {user.isFollowing ? 'Following' : 'Follow'}
+                      </button>
+                    </article>
                   ))}
                 </div>
               ) : (

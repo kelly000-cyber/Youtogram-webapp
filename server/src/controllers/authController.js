@@ -70,6 +70,15 @@ exports.listUsers = async (req, res, next) => {
   }
 };
 
+exports.getUserProfile = async (req, res, next) => {
+  try {
+    const profile = await authService.getUserProfile(req.user.id, req.params.id);
+    res.json({ status: 'success', data: profile });
+  } catch (error) {
+    next(error);
+  }
+};
+
 exports.followUser = async (req, res, next) => {
   try {
     const result = await authService.followUser(req.user.id, req.params.id);

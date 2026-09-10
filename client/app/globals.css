@@ -6476,6 +6476,622 @@ body.facebook-home.light-theme .facebookContactDot {
   border-color: #ffffff;
 }
 
+/* Facebook-inspired profile workspace, kept in the Youtogram visual system. */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.profileFacebookPage {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding-bottom: 2.5rem;
+}
+
+.profileFacebookHero {
+  overflow: visible;
+  border-radius: 22px;
+  background: var(--surface);
+}
+
+.profileCoverPhoto {
+  position: relative;
+  height: clamp(210px, 31vw, 390px);
+  overflow: hidden;
+  border-radius: 21px 21px 0 0;
+  background: #101738;
+}
+
+.profileCoverPhoto img,
+.profileCoverFallback {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.profileCoverFallback {
+  background:
+    radial-gradient(circle at 18% 24%, rgba(0, 216, 255, 0.72), transparent 34%),
+    radial-gradient(circle at 78% 80%, rgba(222, 31, 255, 0.68), transparent 35%),
+    linear-gradient(135deg, #19154a, #202e86 53%, #0c748e);
+}
+
+.profilePhotoAction,
+.profileAvatarEditButton {
+  cursor: pointer;
+}
+
+.profilePhotoAction input,
+.profileAvatarEditButton input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.profileCoverAction {
+  position: absolute;
+  right: 1.1rem;
+  bottom: 1rem;
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 0.95rem;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 12px;
+  color: #fff;
+  background: rgba(6, 8, 26, 0.72);
+  backdrop-filter: blur(10px);
+  font-size: 0.9rem;
+  font-weight: 800;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.profileCoverAction:hover {
+  background: rgba(6, 8, 26, 0.94);
+  transform: translateY(-1px);
+}
+
+.profileFacebookIdentity {
+  display: grid;
+  grid-template-columns: 188px minmax(0, 1fr);
+  gap: 1.35rem;
+  align-items: end;
+  padding: 0 1.5rem 1.2rem;
+}
+
+.profileFacebookAvatarShell {
+  position: relative;
+  width: 176px;
+  margin-top: -76px;
+  z-index: 2;
+}
+
+.profileFacebookAvatarShell .profileAvatarCircle {
+  width: 176px;
+  height: 176px;
+  border: 5px solid var(--surface);
+  border-radius: 50%;
+  background: var(--surface-alt);
+  font-size: 2.5rem;
+}
+
+.profileFacebookAvatarShell .profileAvatarCircle img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profileAvatarEditButton {
+  position: absolute;
+  right: 5px;
+  bottom: 5px;
+  width: 39px;
+  height: 39px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 3px solid var(--surface);
+  color: #07101d;
+  background: #e8eef8;
+  font-size: 1.35rem;
+  font-weight: 900;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.profileAvatarEditButton:hover {
+  background: #fff;
+  transform: scale(1.06);
+}
+
+.profileFacebookTitle {
+  min-width: 0;
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-top: 1rem;
+}
+
+.profileNameRow {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.profileNameRow h1 {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-size: clamp(1.8rem, 3.4vw, 2.7rem);
+  line-height: 1.08;
+}
+
+.profileVerifiedMark {
+  width: 22px;
+  height: 22px;
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  color: #fff;
+  background: #2b8cff;
+  font-size: 0.8rem;
+  font-weight: 900;
+}
+
+.profileConnectionLine {
+  margin: 0.4rem 0 0;
+  color: var(--muted);
+}
+
+.profileFacebookHero .profileHeroTabs {
+  grid-template-columns: repeat(3, minmax(100px, 150px));
+  justify-content: start;
+  gap: 0.25rem;
+  margin: 0 1.5rem;
+  padding-left: 188px;
+  border-top-color: rgba(255, 255, 255, 0.09);
+}
+
+.profileFacebookHero .profileTabButton {
+  min-height: 52px;
+  border-radius: 10px 10px 0 0;
+  font-weight: 800;
+}
+
+.profileFacebookHero .profileTabButton:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.profileFacebookContent {
+  margin-top: 1.25rem;
+  align-items: start;
+}
+
+.profileMainColumn,
+.profilePostsStack {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.profileIntroCard h2 {
+  margin-bottom: 0.6rem;
+}
+
+.profileIntroRows {
+  display: grid;
+  gap: 0.7rem;
+  margin: 1rem 0;
+  color: var(--muted);
+  font-size: 0.93rem;
+}
+
+.profileIntroRows span,
+.profileIntroRows a {
+  overflow-wrap: anywhere;
+}
+
+.profileIntroRows a,
+.profileAboutGrid a {
+  color: var(--brand);
+  text-decoration: none;
+}
+
+.profileIntroRows a:hover,
+.profileAboutGrid a:hover {
+  text-decoration: underline;
+}
+
+.profileIntroEditButton {
+  width: 100%;
+  min-height: 40px;
+  border: 0;
+  border-radius: 10px;
+  color: var(--text);
+  background: var(--surface-alt);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.profileIntroEditButton:hover {
+  filter: brightness(1.12);
+}
+
+.profileCommunityStats {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.profileCommunityStats span {
+  display: flex;
+  justify-content: space-between;
+  color: var(--muted);
+}
+
+.profileCommunityStats strong {
+  color: var(--text);
+}
+
+.profileThemeCard {
+  display: grid;
+  gap: 0.8rem;
+  color: var(--muted);
+}
+
+.profilePostPrompt {
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr);
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.profilePostPromptAvatar {
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 50%;
+  color: var(--text);
+  background: var(--surface-alt);
+  font-weight: 900;
+}
+
+.profilePostPromptAvatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profilePostPrompt button {
+  min-width: 0;
+  min-height: 46px;
+  border: 0;
+  border-radius: 999px;
+  padding: 0 1rem;
+  color: var(--muted);
+  background: var(--surface-alt);
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+
+.profilePostPrompt button:hover {
+  color: var(--text);
+  filter: brightness(1.12);
+}
+
+.profilePostsStack .facebookPostCard.socialPostCard {
+  width: 100%;
+  margin: 0;
+}
+
+.profilePhotoCount {
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.profilePhotoGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+
+.profilePhotoGrid button {
+  min-width: 0;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: var(--surface-alt);
+  cursor: pointer;
+}
+
+.profilePhotoGrid img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  transition: transform 0.22s ease;
+}
+
+.profilePhotoGrid button:hover img {
+  transform: scale(1.05);
+}
+
+.profileEmptyState {
+  display: grid;
+  justify-items: start;
+  gap: 0.8rem;
+  min-height: 170px;
+  align-content: center;
+}
+
+.profileEmptyState h2,
+.profileEmptyState p {
+  margin: 0;
+}
+
+.profileEmptyState p {
+  color: var(--muted);
+}
+
+.profileAboutGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.profileAboutGrid > div {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+  padding: 1rem;
+  border-radius: 12px;
+  background: var(--surface-alt);
+}
+
+.profileAboutGrid span {
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+.profileAboutGrid strong,
+.profileAboutGrid a {
+  overflow-wrap: anywhere;
+}
+
+.profilePhotoLightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 2rem;
+  background: rgba(0, 0, 0, 0.86);
+}
+
+.profilePhotoLightbox img {
+  max-width: min(100%, 1000px);
+  max-height: calc(100vh - 4rem);
+  border-radius: 12px;
+  object-fit: contain;
+}
+
+.profilePhotoLightboxClose {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.18);
+  font-size: 1.8rem;
+  cursor: pointer;
+}
+
+@media (max-width: 760px) {
+  .profileFacebookPage {
+    padding-bottom: 1.5rem;
+  }
+
+  .profileCoverPhoto {
+    height: 225px;
+  }
+
+  .profileFacebookIdentity {
+    grid-template-columns: 1fr;
+    gap: 0.35rem;
+    padding: 0 1rem 1rem;
+  }
+
+  .profileFacebookAvatarShell {
+    width: 132px;
+    margin-top: -66px;
+  }
+
+  .profileFacebookAvatarShell .profileAvatarCircle {
+    width: 132px;
+    height: 132px;
+  }
+
+  .profileFacebookTitle {
+    display: grid;
+    align-items: start;
+    padding-top: 0;
+  }
+
+  .profileFacebookTitle .profileHeroActions {
+    width: 100%;
+  }
+
+  .profileFacebookTitle .profileHeroActions button {
+    flex: 1 1 130px;
+  }
+
+  .profileFacebookHero .profileHeroTabs {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin: 0 1rem;
+    padding-left: 0;
+  }
+
+  .profileFacebookContent {
+    margin-top: 1rem;
+  }
+}
+
+@media (max-width: 520px) {
+  .profileCoverPhoto {
+    height: 190px;
+  }
+
+  .profileCoverAction {
+    right: 0.75rem;
+    bottom: 0.75rem;
+  }
+
+  .profileFacebookAvatarShell {
+    width: 112px;
+    margin-top: -56px;
+  }
+
+  .profileFacebookAvatarShell .profileAvatarCircle {
+    width: 112px;
+    height: 112px;
+    font-size: 2rem;
+  }
+
+  .profileNameRow h1 {
+    font-size: 1.7rem;
+  }
+
+  .profileAboutGrid,
+  .profilePhotoGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .profilePhotoLightbox {
+    padding: 1rem;
+  }
+}
+
+.profileFollowingButton {
+  color: var(--text);
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  box-shadow: none;
+}
+
+.profilePublicActions button:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.searchUserResult {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.searchUserIdentity {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr);
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+
+.searchUserIdentity > span:last-child {
+  min-width: 0;
+}
+
+.searchUserIdentity strong,
+.searchUserIdentity small,
+.searchUserIdentity p {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.searchUserIdentity small {
+  margin-top: 0.12rem;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.searchUserAvatar {
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 50%;
+  color: var(--text);
+  background: var(--surface-alt);
+  font-size: 0.88rem;
+  font-weight: 900;
+}
+
+.searchUserAvatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.searchFollowButton {
+  flex: 0 0 auto;
+  min-height: 36px;
+  border: 0;
+  border-radius: 9px;
+  padding: 0 0.75rem;
+  color: #06111f;
+  background: var(--brand);
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.searchFollowingButton {
+  color: var(--text);
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+}
+
+@media (max-width: 440px) {
+  .searchUserResult {
+    align-items: flex-start;
+  }
+
+  .searchFollowButton {
+    padding: 0 0.6rem;
+  }
+}
+
 /* Feed reference layout: light three-column home with the composer first. */
 body.facebook-home {
   color-scheme: light;

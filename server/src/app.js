@@ -43,7 +43,9 @@ const getAllowedOrigins = () => {
 };
 
 app.use(cors({ origin: true }));
-app.use(express.json({ limit: '2mb' }));
+// Profile and cover pictures are sent as validated image data URLs. Allow a
+// single profile update containing both without raising the global limit too far.
+app.use(express.json({ limit: '4mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(helmet());
 app.use(morgan('dev'));
