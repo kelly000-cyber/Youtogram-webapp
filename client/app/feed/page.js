@@ -44,7 +44,6 @@ export default function FeedPage() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
   const [authExpired, setAuthExpired] = useState(false);
-  const [shareMessage, setShareMessage] = useState('');
   const [activeStory, setActiveStory] = useState(null);
   const [highlightedPostId, setHighlightedPostId] = useState('');
   const [sharedPostId, setSharedPostId] = useState('');
@@ -54,6 +53,7 @@ export default function FeedPage() {
   const [composer, setComposer] = useState(composerDefaults);
   const [emotionTags, setEmotionTags] = useState([]);
   const mediaInputRef = useRef(null);
+  const [showEmotionTags, setShowEmotionTags] = useState(false);
 
   const handleComposerAction = (action) => {
     setComposer((current) => {
@@ -116,7 +116,8 @@ export default function FeedPage() {
       }
 
       if (storiesResult.status === 'fulfilled') {
-        setStories(Array.isArray(storiesResult.value.data) ? storiesResult.value.data : []);
+        const storyItems = Array.isArray(storiesResult.value.data) ? storiesResult.value.data : [];
+        setStories([...new Map(storyItems.map((story) => [story._id, story])).values()].slice(0, 12));
       } else {
         setStories([]);
       }
@@ -254,6 +255,7 @@ export default function FeedPage() {
 
       setComposer(composerDefaults);
       setEmotionTags([]);
+      setShowEmotionTags(false);
     } catch (postError) {
       setError(postError.message || 'Unable to create post.');
     }
@@ -338,19 +340,6 @@ export default function FeedPage() {
 
   const sharedPost = posts.find((post) => post._id === sharePostId);
 
-  const handleLegacyShare = async (postId) => {
-    const shareUrl = `${window.location.origin}/feed?post=${postId}`;
-
-    try {
-      await navigator.clipboard.writeText(shareUrl);
-      setShareMessage('Link copied to clipboard.');
-    } catch {
-      setShareMessage('Copy failed.');
-    }
-
-    window.setTimeout(() => setShareMessage(''), 1800);
-  };
-
   const handleForceLogout = () => {
     authService.logout();
     if (typeof window !== 'undefined') {
@@ -406,38 +395,6 @@ export default function FeedPage() {
               <p className="facebookBanner facebookBannerError">{error}</p>
             )
           ) : null}
-          {shareMessage ? <p className="facebookBanner facebookBannerInfo">{shareMessage}</p> : null}
-
-          <section className="facebookStoriesPanel facebookPanel">
-            <div className="facebookSectionHeader">
-              <strong>Stories</strong>
-            </div>
-            <div className="facebookStoriesRow">
-              <button type="button" className="facebookStoryCard facebookStoryCreateCard" onClick={handleCreateStory}>
-                <span>+ Create story</span>
-              </button>
-              {stories.length ? (
-                stories.map((story) => (
-                  <button key={story._id} type="button" className="facebookStoryCard" onClick={() => setActiveStory(story)}>
-                    {story.media?.[0]?.url ? (
-                      story.media[0].type === 'video' ? (
-                        <video src={story.media[0].url} muted playsInline />
-                      ) : (
-                        <img src={story.media[0].url} alt={story.author?.username || 'Story'} />
-                      )
-                    ) : (
-                      <span className="facebookStoryTextPreview">{story.text || 'Story'}</span>
-                    )}
-                    <span>{story.author?.username || 'Story'}</span>
-                  </button>
-                ))
-              ) : (
-                <div className="facebookStoryCard facebookStoryEmpty">
-                  <span>No stories yet. Add one to share a moment on top of the feed.</span>
-                </div>
-              )}
-            </div>
-          </section>
 
           <section className="facebookComposerCard facebookPanel">
             <form onSubmit={handleCreatePost} className="facebookComposerForm">
@@ -477,14 +434,16 @@ export default function FeedPage() {
                   Add to story
                 </button>
               </div>
-              <div className="emotionTagPicker" aria-label="Choose post topics">
-                <span>What is this post about?</span>
+              <button type="button" className="emotionToggleButton" onClick={() => setShowEmotionTags((visible) => !visible)}>
+                {emotionTags.length ? `${emotionTags.length} topics selected` : 'Add a feeling or topic'}
+              </button>
+              {showEmotionTags ? <div className="emotionTagPicker" aria-label="Choose post topics">
                 <div>
                   {emotionOptions.map(([tag, label]) => (
                     <button key={tag} type="button" className={emotionTags.includes(tag) ? 'emotionTagActive' : ''} onClick={() => toggleEmotionTag(tag)}>{label}</button>
                   ))}
                 </div>
-              </div>
+              </div> : null}
               <div className="facebookComposerActions">
                 <label className="facebookMediaPicker">
                   <span>{composer.mediaFile ? `Selected: ${composer.mediaFile.name}` : 'Choose photo or video'}</span>
@@ -509,6 +468,19 @@ export default function FeedPage() {
                 </div>
               ) : null}
             </form>
+          </section>
+
+          <section className="facebookStoriesPanel facebookPanel">
+            <div className="facebookSectionHeader"><strong>Stories</strong></div>
+            <div className="facebookStoriesRow">
+              <button type="button" className="facebookStoryCard facebookStoryCreateCard" onClick={handleCreateStory}><span>+ Create story</span></button>
+              {stories.length ? stories.map((story) => (
+                <button key={story._id} type="button" className="facebookStoryCard" onClick={() => setActiveStory(story)}>
+                  {story.media?.[0]?.url ? (story.media[0].type === 'video' ? <video src={story.media[0].url} muted playsInline /> : <img src={story.media[0].url} alt={story.author?.username || 'Story'} />) : <span className="facebookStoryTextPreview">{story.text || 'Story'}</span>}
+                  <span>{story.author?.username || 'Story'}</span>
+                </button>
+              )) : <div className="facebookStoryCard facebookStoryEmpty"><span>No stories yet. Add one to share a moment.</span></div>}
+            </div>
           </section>
 
           {loading ? (

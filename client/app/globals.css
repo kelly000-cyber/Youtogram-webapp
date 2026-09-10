@@ -6507,6 +6507,52 @@ body.facebook-home .facebookHomePage {
   background: #f0f2f5;
 }
 
+body.facebook-home .facebookShell,
+body.facebook-home .facebookHomePage {
+  color-scheme: light;
+}
+
+body.facebook-home .facebookComposerCard,
+body.facebook-home .facebookStoriesPanel,
+body.facebook-home .facebookPostCard.socialPostCard {
+  color: #050505;
+}
+
+body.facebook-home .facebookComposerTop textarea,
+body.facebook-home .facebookComposerActions input,
+body.facebook-home .facebookComposerActions select {
+  background: #f0f2f5;
+  color: #050505;
+  border-color: #ccd0d5;
+}
+
+body.facebook-home .facebookComposerQuickAction,
+body.facebook-home .facebookMediaPicker,
+body.facebook-home .emotionToggleButton,
+body.facebook-home .emotionTagPicker button {
+  background: #f0f2f5;
+  color: #050505;
+  border-color: #ccd0d5;
+}
+
+body.facebook-home .facebookComposerQuickActionActive,
+body.facebook-home .emotionTagPicker .emotionTagActive {
+  background: #e7f3ff;
+  color: #1877f2;
+  border-color: #1877f2;
+}
+
+.emotionToggleButton {
+  width: fit-content;
+  border: 1px solid #ccd0d5;
+  border-radius: 999px;
+  padding: 0.45rem 0.75rem;
+  background: #f0f2f5;
+  color: #65676b;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+
 body.facebook-home .facebookHomeLayout {
   width: min(1440px, calc(100% - 32px));
   grid-template-columns: 280px minmax(0, 1fr) 320px;
