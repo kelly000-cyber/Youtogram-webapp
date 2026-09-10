@@ -98,6 +98,36 @@
   background: rgba(24, 119, 242, 0.92);
 }
 
+.volumeControl {
+  position: absolute;
+  top: 68px;
+  right: 18px;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: auto 108px auto;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 38px;
+  padding: 0.45rem 0.65rem;
+  border-radius: 12px;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.62);
+  font-size: 0.76rem;
+  font-weight: 800;
+  backdrop-filter: blur(10px);
+}
+
+.volumeControl input {
+  width: 108px;
+  accent-color: #17d8ff;
+  cursor: pointer;
+}
+
+.volumeControl output {
+  min-width: 34px;
+  text-align: right;
+}
+
 .overlay {
   position: absolute;
   inset: 0;
@@ -339,5 +369,10 @@
   .card,
   .media {
     min-height: calc(100vh - 72px);
+  }
+
+  .volumeControl {
+    top: 64px;
+    right: 12px;
   }
 }

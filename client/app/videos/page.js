@@ -12,7 +12,9 @@ function formatCount(value = 0) {
 
 function AutoPlayReel({ video, styles }) {
   const videoRef = useRef(null);
+  const audioGraphRef = useRef(null);
   const [muted, setMuted] = useState(true);
+  const [volume, setVolume] = useState(100);
 
   useEffect(() => {
     const media = videoRef.current;
@@ -29,7 +31,10 @@ function AutoPlayReel({ video, styles }) {
     }, { threshold: 0.7 });
 
     observer.observe(media);
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      audioGraphRef.current?.context?.close?.();
+    };
   }, []);
 
   const enableSound = () => {
@@ -38,6 +43,43 @@ function AutoPlayReel({ video, styles }) {
     media.muted = false;
     setMuted(false);
     media.play().catch(() => {});
+  };
+
+  const getAudioGraph = () => {
+    if (audioGraphRef.current) return audioGraphRef.current;
+    const media = videoRef.current;
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!media || !AudioContext) return null;
+
+    try {
+      const context = new AudioContext();
+      const source = context.createMediaElementSource(media);
+      const gain = context.createGain();
+      source.connect(gain).connect(context.destination);
+      audioGraphRef.current = { context, gain };
+      return audioGraphRef.current;
+    } catch {
+      return null;
+    }
+  };
+
+  const handleVolumeChange = (event) => {
+    const nextVolume = Number(event.target.value);
+    const media = videoRef.current;
+    if (!media) return;
+
+    // 100% is the file's normal volume. 101–200% uses a safe Web Audio gain
+    // node when the browser permits it, which helps quieter uploads.
+    const graph = nextVolume > 100 ? getAudioGraph() : audioGraphRef.current;
+    if (graph) {
+      graph.gain.gain.value = Math.max(1, nextVolume / 100);
+      graph.context.resume().catch(() => {});
+    }
+    media.volume = Math.min(nextVolume / 100, 1);
+    media.muted = nextVolume === 0;
+    setMuted(media.muted);
+    setVolume(nextVolume);
+    if (nextVolume > 0) media.play().catch(() => {});
   };
 
   return (
@@ -52,9 +94,18 @@ function AutoPlayReel({ video, styles }) {
         playsInline
         loop
         preload="metadata"
-        onVolumeChange={(event) => setMuted(event.currentTarget.muted || event.currentTarget.volume === 0)}
+        onVolumeChange={(event) => {
+          const media = event.currentTarget;
+          setMuted(media.muted || media.volume === 0);
+          if (!audioGraphRef.current) setVolume(Math.round(media.volume * 100));
+        }}
       />
       {muted ? <button type="button" className={styles.soundButton} onClick={enableSound}>Sound on</button> : null}
+      <label className={styles.volumeControl}>
+        <span>Volume</span>
+        <input type="range" min="0" max="200" step="5" value={volume} onChange={handleVolumeChange} aria-label="Video volume" />
+        <output>{volume}%</output>
+      </label>
     </>
   );
 }
