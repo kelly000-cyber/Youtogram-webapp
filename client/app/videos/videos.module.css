@@ -1,0 +1,378 @@
+.page {
+  min-height: calc(100vh - 72px);
+  display: grid;
+  grid-template-columns: 240px minmax(0, 660px);
+  justify-content: center;
+  gap: 32px;
+  padding: 18px 16px 40px;
+  background: #000;
+}
+
+.hero {
+  width: min(1080px, 100%);
+  margin: 0 auto 18px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: center;
+  padding: 22px;
+  border-radius: 28px;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  background: linear-gradient(145deg, rgba(14, 24, 40, 0.96), rgba(11, 18, 31, 0.88));
+}
+
+.kicker {
+  margin: 0 0 6px;
+  color: #17d8ff;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-size: 0.76rem;
+}
+
+.hero h1 {
+  margin: 0;
+  font-size: clamp(1.8rem, 4vw, 3rem);
+}
+
+.copy {
+  margin: 10px 0 0;
+  max-width: 62ch;
+  color: rgba(226, 232, 240, 0.78);
+}
+
+.primaryButton {
+  border: 0;
+  border-radius: 999px;
+  padding: 0.9rem 1.1rem;
+  cursor: pointer;
+  font-weight: 700;
+  background: linear-gradient(135deg, #17d8ff, #5d79ff);
+  color: #04111e;
+}
+
+.stack {
+  width: min(660px, 100%);
+  margin: 0;
+  display: grid;
+  gap: 18px;
+  scroll-snap-type: y mandatory;
+}
+
+.card {
+  position: relative;
+  min-height: calc(100vh - 92px);
+  border-radius: 10px;
+  overflow: hidden;
+  background: #000;
+  scroll-snap-align: start;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.34);
+}
+
+.media {
+  width: 100%;
+  height: 100%;
+  min-height: calc(100vh - 92px);
+  object-fit: cover;
+  background: #000;
+}
+
+.soundButton {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  z-index: 2;
+  border: 0;
+  border-radius: 999px;
+  padding: 0.65rem 0.9rem;
+  background: rgba(0, 0, 0, 0.62);
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+}
+
+.soundButton:hover {
+  background: rgba(24, 119, 242, 0.92);
+}
+
+.volumeControl {
+  position: absolute;
+  top: 68px;
+  right: 18px;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: auto 108px auto;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 38px;
+  padding: 0.45rem 0.65rem;
+  border-radius: 12px;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.62);
+  font-size: 0.76rem;
+  font-weight: 800;
+  backdrop-filter: blur(10px);
+}
+
+.volumeControl input {
+  width: 108px;
+  accent-color: #17d8ff;
+  cursor: pointer;
+}
+
+.volumeControl output {
+  min-width: 34px;
+  text-align: right;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 18px;
+  padding: 24px;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.08) 0%, rgba(0, 0, 0, 0.14) 35%, rgba(0, 0, 0, 0.8) 100%);
+}
+
+.meta {
+  max-width: 520px;
+}
+
+.meta strong,
+.meta h2,
+.meta p {
+  color: #fff;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.65);
+}
+
+.meta h2 {
+  margin: 6px 0 8px;
+  font-size: clamp(1.2rem, 2.2vw, 2rem);
+}
+
+.meta p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.84);
+}
+
+.actions {
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+  min-width: 74px;
+}
+
+.actions button {
+  border: 0;
+  border-radius: 999px;
+  padding: 0.7rem 0.95rem;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  cursor: pointer;
+  backdrop-filter: blur(12px);
+}
+
+.likeButton {
+  display: grid;
+  place-items: center;
+}
+
+.likeButton svg {
+  width: 24px;
+  height: 24px;
+}
+
+.sidebar {
+  position: sticky;
+  top: 90px;
+  align-self: start;
+  display: grid;
+  gap: 10px;
+  color: #fff;
+}
+
+.sidebar h1 {
+  margin: 0 0 4px;
+  font-size: 1.8rem;
+}
+
+.sidebarItem,
+.sidebarItemActive {
+  border: 0;
+  border-radius: 10px;
+  padding: 0.95rem 1rem;
+  color: #fff;
+  background: transparent;
+  text-align: left;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.sidebarItemActive,
+.sidebarItem:hover {
+  background: #1f1f1f;
+}
+
+.postVideoButton {
+  border: 0;
+  border-radius: 10px;
+  padding: 0.9rem 1rem;
+  background: #1877f2;
+  color: #ffffff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.postVideoButton:hover,
+.publishButton:hover {
+  background: #166fe5;
+}
+
+.uploadOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.68);
+}
+
+.uploadModal {
+  width: min(520px, 100%);
+  display: grid;
+  gap: 1rem;
+  padding: 1.25rem;
+  border-radius: 16px;
+  background: #ffffff;
+  color: #111827;
+}
+
+.uploadHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.uploadHeader h2 {
+  margin: 0;
+}
+
+.uploadHeader button {
+  width: 38px;
+  height: 38px;
+  border: 0;
+  border-radius: 50%;
+  background: #e5e7eb;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.videoPicker {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 100px;
+  padding: 1rem;
+  border: 2px dashed #9ca3af;
+  border-radius: 12px;
+  color: #374151;
+  text-align: center;
+  cursor: pointer;
+}
+
+.videoPicker input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.uploadModal input:not([type='file']),
+.uploadModal textarea {
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  padding: 0.85rem;
+  color: #111827;
+  font: inherit;
+}
+
+.uploadModal textarea {
+  resize: vertical;
+}
+
+.uploadPreview {
+  width: 100%;
+  max-height: 240px;
+  border-radius: 10px;
+  background: #000000;
+  object-fit: contain;
+}
+
+.publishButton {
+  min-height: 46px;
+  border: 0;
+  border-radius: 10px;
+  background: #1877f2;
+  color: #ffffff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.publishButton:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.actions span {
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+@media (max-width: 720px) {
+  .page {
+    display: block;
+    padding: 0;
+  }
+
+  .sidebar {
+    display: none;
+  }
+
+  .stack {
+    width: 100%;
+  }
+
+  .overlay {
+    padding: 18px;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-items: start;
+    min-width: 0;
+  }
+
+  .card,
+  .media {
+    min-height: calc(100vh - 72px);
+  }
+
+  .volumeControl {
+    top: 64px;
+    right: 12px;
+  }
+}
