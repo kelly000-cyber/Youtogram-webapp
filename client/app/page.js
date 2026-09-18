@@ -362,7 +362,7 @@ export default function HomePage() {
                     <p>User Accounts: You are responsible for your account and activity. Keep your login details secure. We may suspend or terminate accounts that violate our rules.</p>
                     <p>Content Ownership: You retain ownership of content you post, but by posting you grant Youtogram a license to display and distribute your content on the platform.</p>
                     <p>Content Moderation: We reserve the right to remove content that violates our policies and suspend or ban users when necessary.</p>
-                    <p>Limitation of Liability: Youtogram is provided “as is.” We are not responsible for user-generated content, loss of data, or damages from using the platform.</p>
+                    <p>Limitation of Liability: Youtogram is provided &ldquo;as is.&rdquo; We are not responsible for user-generated content, loss of data, or damages from using the platform.</p>
                     <h4>Privacy Policy</h4>
                     <p>Your privacy matters. We may collect name, email, profile details, content, usage data, and device/log information.</p>
                     <p>How We Use Your Information: We use your data to provide and improve services, personalize your experience, communicate with you, and keep the platform safe.</p>
@@ -387,5 +387,6 @@ export default function HomePage() {
         </div>
       </section>
     </main>
+  </>
   );
 }

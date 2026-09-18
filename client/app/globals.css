@@ -6565,7 +6565,7 @@ body.facebook-home.light-theme .facebookContactDot {
   display: grid;
   grid-template-columns: 188px minmax(0, 1fr);
   gap: 1.35rem;
-  align-items: end;
+  align-items: flex-end;
   padding: 0 1.5rem 1.2rem;
 }
 
@@ -6616,7 +6616,7 @@ body.facebook-home.light-theme .facebookContactDot {
 .profileFacebookTitle {
   min-width: 0;
   display: flex;
-  align-items: end;
+  align-items: flex-end;
   justify-content: space-between;
   gap: 1rem;
   padding-top: 1rem;
